@@ -1,0 +1,1 @@
+1)For Tailwindcss & NativeWind  Config   - https://www.nativewind.dev/docs/getting-started/installation
