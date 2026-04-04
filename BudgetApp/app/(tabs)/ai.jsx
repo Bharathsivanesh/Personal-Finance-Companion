@@ -1,9 +1,8 @@
-import { View, Text } from "react-native";
 
-export default function AI() {
+import AIAssistantScreen from "../../src/features/Aiassistant/screens/Ai";
+
+export default function Ai() {
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text>AI Screen</Text>
-    </View>
+    <AIAssistantScreen/>
   );
 }
