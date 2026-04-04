@@ -1,9 +1,8 @@
-import { View, Text } from "react-native";
+
+import TransactionsScreen from "../../src/features/transaction/screens/Transactions";
 
 export default function Transactions() {
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text>Transactions Screen</Text>
-    </View>
+    <TransactionsScreen/>
   );
 }
