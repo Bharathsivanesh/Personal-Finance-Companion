@@ -15,5 +15,5 @@
     "expo-env.d.ts",
     "app/index.tsx",   //IMPORTANT
     "nativewind-env.d.ts"
-  ]
+, "app/(auth)/login.jsx", "app/(auth)/signup.jsx"  ]
 }
