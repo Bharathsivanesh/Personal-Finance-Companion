@@ -113,11 +113,14 @@ export default function LoginScreen() {
 
   // ── Google auth ─────────────────────────────────────────────────────────────
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: "",
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    redirectUri: "https://auth.expo.io/@sivaneshs/BudgetApp",
+    scopes: ["openid", "profile", "email"],
   });
 
   useEffect(() => {
     if (response?.type === "success") handleGoogleResponse(response);
+    console.log("Google auth response:", response);
   }, [response]);
 
   const handleGoogleResponse = async (response) => {

@@ -79,8 +79,6 @@ export default function TrendChart({ data, type, period }) {
             {periodLabel} breakdown
           </Text>
         </View>
-
-        
       </View>
 
       {/* ✅ Empty state overlay — shown on top of flat chart */}

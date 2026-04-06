@@ -104,7 +104,7 @@ const ErrorState = ({ message, onRetry }) => (
 // ── screen ────────────────────────────────────────────────────────────────────
 
 export default function InsightsScreen() {
-  const [period, setPeriod] = useState("Month");
+  const [period, setPeriod] = useState("Week");
   const [txType, setTxType] = useState("Income");
 
   // Main insights — changes with period + type filter
@@ -160,10 +160,6 @@ export default function InsightsScreen() {
             <SectionLabel text="SUMMARY" />
             <SummaryRow data={data.summary} type={txType} />
 
-            <SectionLabel text="TREND" />
-            {/* TrendChart handles its own height — no extra wrapper needed */}
-            <TrendChart data={data.chart} type={txType} period={period} />
-
             {/* Breakdown — colour fix handled inside SpendingBreakdown */}
             <SpendingBreakdown
               data={data.breakdown}
@@ -173,6 +169,9 @@ export default function InsightsScreen() {
 
             <SectionLabel text="COMPARISON" />
             <PeriodComparison data={data.comparison} type={txType} />
+            <SectionLabel text="TREND" />
+            {/* TrendChart handles its own height — no extra wrapper needed */}
+            <TrendChart data={data.chart} type={txType} period={period} />
 
             {/* GOAL section removed ✅ */}
 

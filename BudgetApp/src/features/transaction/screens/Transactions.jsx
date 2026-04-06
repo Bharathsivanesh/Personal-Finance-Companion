@@ -66,7 +66,7 @@ export default function TransactionsScreen() {
       setTransactions(data.map(formatTransaction));
     } catch (error) {
       console.log(error);
-      Toast.show({ type: "error", text1: "Failed to load data" });
+      // Toast.show({ type: "error", text1: "Failed to load data" });
     } finally {
       setLoading(false);
     }
@@ -83,12 +83,15 @@ export default function TransactionsScreen() {
     try {
       setDeleteLoading(true);
       await deleteTransactionservice(deleteTarget.id);
-      Toast.show({ type: "success", text1: "Transaction deleted successfully" });
+      Toast.show({
+        type: "success",
+        text1: "Transaction deleted successfully",
+      });
       setDeleteTarget(null);
       triggerRefresh();
     } catch (err) {
       console.log(err);
-       Toast.show({ type: "error", text1: "Failed to delete transaction" });
+      Toast.show({ type: "error", text1: "Failed to delete transaction" });
     } finally {
       setDeleteLoading(false);
     }

@@ -32,10 +32,9 @@ export default function HomeScreen() {
 
       setUserData(res.user);
       setTransactions(res.transactions);
-
     } catch (e) {
       console.log(e);
-      Toast.show({ type: "error", text1: "Failed to load data" });
+      // Toast.show({ type: "error", text1: "Failed to load data" });
     } finally {
       setLoading(false);
     }

@@ -14,6 +14,8 @@ import { AuthProvider } from "@/src/context/AuthContext";
 import { ToastProvider } from "@/src/components/ui/Toast";
 import Toast from "react-native-toast-message";
 
+SplashScreen.preventAutoHideAsync();
+
 export const unstable_settings = {
   anchor: "(tabs)",
 };
@@ -26,7 +28,6 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      {" "}
       {/* ✅ WRAP Context Provider */}
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <ToastProvider>

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/src/context/AuthContext";
 import { getDailyActivityService } from "../services/insightsService";
-
+import { useTransactionRefresh } from "@/src/context/TransactionContext";
 /**
  * Fetches daily activity data independently of the period/type filter.
  * This is called ONCE when the screen mounts and never changes on filter switch.
@@ -21,6 +21,7 @@ export const useDailyActivity = () => {
   const [endDate, setEndDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { refreshKey } = useTransactionRefresh();
 
   const fetchData = useCallback(async () => {
     if (!user?.uid) return;
@@ -42,7 +43,7 @@ export const useDailyActivity = () => {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, refreshKey]);
 
   return { activityMap, startDate, endDate, loading, error };
 };

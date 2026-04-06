@@ -85,7 +85,7 @@ export default function RecentTransactions({ data }) {
                 iconBg={item.type === "income" ? "#e8fdf0" : "#fef3e2"}
                 iconColor={item.type === "income" ? "#22c55e" : "#f59e0b"}
                 title={item.category || item.type}
-                subtitle={item.paymentMode || ""}
+                subtitle={item.paymentMode || "Money Transfer"}
                 date={date?.toLocaleString()}
                 amount={item.amount}
                 isIncome={item.type === "income"}
