@@ -164,19 +164,19 @@ export default function WelcomeState({ onChipPress }) {
         <View style={{ flexDirection: "row", gap: 8 }}>
           {[
             {
-              label: "11 transactions",
+              label: "transactions",
               icon: "receipt",
               color: C.primary,
               bg: C.primaryPale,
             },
             {
-              label: "₹62K income",
+              label: "income",
               icon: "trending-up",
               color: C.green,
               bg: C.greenBg,
             },
             {
-              label: "₹5.7K spent",
+              label: "spent",
               icon: "trending-down",
               color: C.red,
               bg: C.redBg,
