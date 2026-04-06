@@ -1,9 +1,12 @@
+// src/features/transaction/components/DateGroup.jsx
 import { Text, View } from "react-native";
 import TransactionRow from "./TransactionRow";
 import { formatGroupDate } from "../utils/helpers";
 import C from "../../../constants/colors";
-export default function DateGroup({ dateStr, items }) {
+
+export default function DateGroup({ dateStr, items, onEdit, onDelete }) {
   const label = formatGroupDate(dateStr);
+
   const netDay = items.reduce((s, t) => {
     if (t.type === "income") return s + parseFloat(t.amount);
     if (t.type === "expense") return s - parseFloat(t.amount);
@@ -81,6 +84,8 @@ export default function DateGroup({ dateStr, items }) {
             key={item.id}
             item={item}
             isLast={idx === items.length - 1}
+            onEdit={onEdit} // ✅ pass down
+            onDelete={onDelete} // ✅ pass down
           />
         ))}
       </View>

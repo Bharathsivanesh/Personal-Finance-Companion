@@ -11,11 +11,11 @@ export default function Page() {
 
     setTimeout(() => {
       if (user) {
-        router.replace("/(tabs)/home"); // ✅ logged in
+        router.replace("/(tabs)"); // logged in
       } else {
-        router.replace("/(auth)/login"); // ✅ not logged in
+        router.replace("/(auth)/login"); // not logged in
       }
-    }, 2000);
+    }, 4000);
   }, [loading]);
 
   return <SplashScreen />;

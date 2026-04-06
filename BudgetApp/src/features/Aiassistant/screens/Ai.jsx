@@ -1,19 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  Platform,
-  Animated,
-  Easing,
-  ActivityIndicator,
-  Dimensions,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+// src/features/Aiassistant/screens/AIAssistantScreen.jsx
+import React, { useState, useRef, useCallback } from "react";
+import { View, Text, StatusBar } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AIHeader from "../components/AIHeader";
@@ -22,84 +11,88 @@ import MessageBubble from "../components/MessageBubble";
 import TypingDots from "../components/TypingDots";
 import SuggestionRow from "../components/SuggestionRow";
 import InputBar from "../components/InputBar";
+import { sendToGeminiService } from "../services/Aiservice";
+import { useAuth } from "@/src/context/AuthContext";
 import C from "../../../constants/colors";
+
+const nowTime = () =>
+  new Date().toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function AIAssistantScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
+  const { user } = useAuth();
   const TAB_BAR_HEIGHT = 65;
+  const tabBarTotalHeight = TAB_BAR_HEIGHT + insets.bottom;
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const tabBarTotalHeight = TAB_BAR_HEIGHT + insets.bottom;
+  const scrollToBottom = (delay = 100) => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), delay);
+  };
 
-  const nowTime = () =>
-    new Date().toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  async function fetchAIResponse(userMessage) {
-    await new Promise((r) => setTimeout(r, 1400));
-    const msg = userMessage.toLowerCase();
-    if (msg.includes("expense") || msg.includes("spend"))
-      return "Based on your transactions this month, your **top expense category is Food & Dining** at ₹1,425 (34% of total spending). Consider reducing dining out by 20% to save an extra ₹285/month. 🍽️";
-    if (
-      msg.includes("income") ||
-      msg.includes("salary") ||
-      msg.includes("earn")
-    )
-      return "Your total income this month is **₹62,000** — ₹50,000 from salary and ₹12,000 from freelance work. That's 18% higher than last month! 💪";
-    if (msg.includes("save") || msg.includes("saving"))
-      return "Here are 3 quick wins:\n\n1. **Cancel unused subscriptions**\n2. **Cook at home 2 more days/week** — saves ~₹800/month\n3. **Set a ₹5,000 auto-transfer** to savings 🎯";
-    if (msg.includes("budget") || msg.includes("over"))
-      return "You're **within budget** on most categories! Only Food is slightly over (8%). Overall spending is 21% below your total budget — great discipline! ✅";
-    if (msg.includes("summary") || msg.includes("month"))
-      return "**April 2026 Summary:**\n\n💰 Income: ₹62,000\n💸 Expenses: ₹5,748\n📊 Net: +₹56,252\n\nSavings rate: 90.7% — excellent! 🚀";
-    if (msg.includes("transfer"))
-      return "You've made **2 transfers** totalling ₹7,000 this month. Transfers are excluded from expense calculations. ↕️";
-    return "Great question! Based on your spending patterns, you're on a solid track this month. Would you like me to break down a specific category or give personalised saving tips? 💡";
-  }
   const sendMessage = useCallback(
     async (text) => {
       const msg = (text ?? input).trim();
       if (!msg || isLoading) return;
+
       setInput("");
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now() + "u", role: "user", text: msg, time: nowTime() },
-      ]);
+
+      // Add user message immediately
+      const userMsg = {
+        id: Date.now() + "u",
+        role: "user",
+        text: msg,
+        time: nowTime(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+      scrollToBottom(100);
+
       try {
-        const reply = await fetchAIResponse(msg);
+        // Pass conversation history for multi-turn context
+        // We pass messages BEFORE this new one (prev state)
+        const history = messages; // captured at call time
+
+        const reply = await sendToGeminiService({
+          userMessage: msg,
+          userId: user?.uid,
+          conversationHistory: history,
+        });
+
         setMessages((prev) => [
           ...prev,
-          { id: Date.now() + "a", role: "ai", text: reply, time: nowTime() },
+          {
+            id: Date.now() + "a",
+            role: "ai",
+            text: reply,
+            time: nowTime(),
+          },
         ]);
-      } catch {
+      } catch (error) {
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now() + "err",
             role: "ai",
-            text: "Sorry, I couldn't process that right now. Please try again.",
+            text: "Sorry, I couldn't connect right now. Please check your internet and try again. 🙏",
             time: nowTime(),
           },
         ]);
       } finally {
         setIsLoading(false);
-        setTimeout(
-          () => scrollRef.current?.scrollToEnd({ animated: true }),
-          150,
-        );
+        scrollToBottom(150);
       }
     },
-    [input, isLoading],
+    [input, isLoading, messages, user?.uid],
   );
 
   return (
-
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
 
@@ -108,14 +101,14 @@ export default function AIAssistantScreen({ navigation }) {
         <AIHeader onBack={navigation?.goBack} />
       </View>
 
-      {/* Scrollable messages — KeyboardAwareScrollView handles keyboard push */}
+      {/* Scrollable messages */}
       <KeyboardAwareScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 16 }}
         keyboardShouldPersistTaps="handled"
-        enableOnAndroid={true}
-        enableAutomaticScroll={true}
+        enableOnAndroid
+        enableAutomaticScroll
         extraScrollHeight={tabBarTotalHeight + 20}
         showsVerticalScrollIndicator={false}
       >
@@ -125,6 +118,7 @@ export default function AIAssistantScreen({ navigation }) {
           messages.map((m) => <MessageBubble key={m.id} message={m} />)
         )}
 
+        {/* Typing indicator */}
         {isLoading && (
           <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
             <View
@@ -150,7 +144,7 @@ export default function AIAssistantScreen({ navigation }) {
                 <Ionicons name="sparkles" size={12} color="#fff" />
               </LinearGradient>
               <Text style={{ fontSize: 11, fontWeight: "700", color: C.muted }}>
-                Aria is thinking…
+                AI is thinking…
               </Text>
             </View>
             <View
@@ -168,12 +162,13 @@ export default function AIAssistantScreen({ navigation }) {
           </View>
         )}
 
+        {/* Suggestion chips — shown after first reply */}
         {messages.length > 0 && !isLoading && (
           <SuggestionRow onPress={sendMessage} />
         )}
       </KeyboardAwareScrollView>
 
-      {/* Input bar — always above tab bar */}
+      {/* Input bar */}
       <InputBar
         input={input}
         setInput={setInput}

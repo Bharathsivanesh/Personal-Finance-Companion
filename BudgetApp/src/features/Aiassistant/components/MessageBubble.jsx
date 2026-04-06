@@ -64,7 +64,7 @@ export default function MessageBubble({ message }) {
             <Ionicons name="sparkles" size={12} color="#fff" />
           </LinearGradient>
           <Text style={{ fontSize: 11, fontWeight: "700", color: C.muted }}>
-            Aria · AI Assistant
+            AI · AI Assistant
           </Text>
         </View>
       )}

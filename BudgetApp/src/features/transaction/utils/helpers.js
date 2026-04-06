@@ -2,16 +2,48 @@ import C from "../../../constants/colors";
 export function formatGroupDate(dateStr) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const d = new Date(dateStr);
-  d.setHours(0, 0, 0, 0);
-  const diff = (today - d) / 86400000;
+
+  // ✅ parse manually — avoids UTC shift
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d); // local midnight, no UTC offset issue
+
+  const diff = Math.round((today - date) / 86400000);
+
   if (diff === 0) return "Today";
   if (diff === 1) return "Yesterday";
-  return d.toLocaleDateString("en-IN", {
+  return date.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+}
+
+export function isInDateRange(dateStr, range) {
+  // ✅ parse manually here too
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+
+  const now = new Date();
+  if (range === "Today") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return date >= today && date < tomorrow;
+  }
+  if (range === "This Week") {
+    const s = new Date(now);
+    s.setDate(now.getDate() - now.getDay());
+    s.setHours(0, 0, 0, 0);
+    return date >= s;
+  }
+  if (range === "This Month") {
+    return (
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
+  }
+  return true;
 }
 
 export function groupByDate(list) {
@@ -21,23 +53,6 @@ export function groupByDate(list) {
     map[t.date].push(t);
   });
   return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]));
-}
-
-export function isInDateRange(dateStr, range) {
-  const d = new Date(dateStr);
-  const now = new Date();
-  if (range === "Today") return d.toDateString() === now.toDateString();
-  if (range === "This Week") {
-    const s = new Date(now);
-    s.setDate(now.getDate() - now.getDay());
-    s.setHours(0, 0, 0, 0);
-    return d >= s;
-  }
-  if (range === "This Month")
-    return (
-      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    );
-  return true;
 }
 
 export function badgeStyle(type) {

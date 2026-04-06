@@ -1,4 +1,4 @@
-
+// app/(tabs)/_layout.jsx
 import { useState } from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,8 +6,12 @@ import { View, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AddTransactionModal from "@/src/features/add/screens/AddTransactionModal";
+import {
+  TransactionProvider,
+  useTransactionRefresh,
+} from "@/src/context/TransactionContext";
 
-function AddButton({ onPress }: { onPress: () => void }) {
+function AddButton({ onPress }) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -30,7 +34,7 @@ function AddButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-function TabIcon({ name, outlineName, focused }: any) {
+function TabIcon({ name, outlineName, focused }) {
   return (
     <Ionicons name={focused ? name : outlineName} size={22} color="#ffffff" />
   );
@@ -56,9 +60,16 @@ function TabBarBackground() {
   );
 }
 
-export default function TabLayout() {
+// ✅ STEP 1 — inner component, lives INSIDE provider so hook works
+function TabsInner() {
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
+  const { triggerRefresh } = useTransactionRefresh(); // ✅ safe here
+
+  const handleTransactionAdded = () => {
+    setModalVisible(false);
+    triggerRefresh();
+  };
 
   return (
     <>
@@ -154,7 +165,17 @@ export default function TabLayout() {
       <AddTransactionModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+        onSuccess={handleTransactionAdded}
       />
     </>
+  );
+}
+
+// ✅ STEP 2 — outer component only wraps with provider
+export default function TabLayout() {
+  return (
+    <TransactionProvider>
+      <TabsInner />
+    </TransactionProvider>
   );
 }

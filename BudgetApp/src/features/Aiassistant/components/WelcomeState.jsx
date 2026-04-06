@@ -58,7 +58,6 @@ function QuickChip({ chip, onPress }) {
   );
 }
 export default function WelcomeState({ onChipPress }) {
-    
   // Build pairs for 2-per-row layout
   const rows = [];
   for (let i = 0; i < QUICK_PROMPTS.length; i += 2) {
@@ -158,7 +157,7 @@ export default function WelcomeState({ onChipPress }) {
               Connected to your data
             </Text>
             <Text style={{ fontSize: 11, color: C.faint }}>
-              Aria reads your transactions privately
+              AI reads your transactions privately
             </Text>
           </View>
         </View>

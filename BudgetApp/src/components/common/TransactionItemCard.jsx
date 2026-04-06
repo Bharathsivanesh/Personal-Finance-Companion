@@ -1,7 +1,21 @@
+import C from "@/src/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
-export default function TransactionItem({ icon, iconBg, iconColor, title, subtitle, date, amount, isIncome }) {
+export default function TransactionItem({
+  icon,
+  type,
+  iconBg,
+  iconColor,
+  title,
+  subtitle,
+  date,
+  amount,
+  isIncome,
+}) {
+  const amountColor =
+    type === "income" ? "#22c55e" : type === "expense" ? "#ef4444" : C.blue; // transfer (purple)
+  const amountPrefix = type === "income" ? "+" : type === "expense" ? "-" : ""; // transfer
   return (
     <View
       style={{
@@ -36,15 +50,21 @@ export default function TransactionItem({ icon, iconBg, iconColor, title, subtit
           {date}
         </Text>
       </View>
-      <Text
-        style={{
-          fontSize: 14,
-          fontWeight: "700",
-          color: isIncome ? "#22c55e" : "#ef4444",
-        }}
-      >
-        {isIncome ? "+" : "-"}₹{amount}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        {type === "transfer" && (
+          <Ionicons name="swap-horizontal" size={14} color={C.blue} />
+        )}
+
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "700",
+            color: amountColor,
+          }}
+        >
+          {amountPrefix}₹{amount}
+        </Text>
+      </View>
     </View>
   );
 }

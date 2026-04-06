@@ -74,7 +74,7 @@ export default function SummaryRow({ data, type }) {
         </Text>
       </View>
 
-      <View style={{ ...cardBase, flex: 1 }}>
+      {/* <View style={{ ...cardBase, flex: 1 }}>
         <Text
           style={{
             fontSize: 17,
@@ -96,7 +96,7 @@ export default function SummaryRow({ data, type }) {
         >
           {data.avgLabel}
         </Text>
-      </View>
+      </View> */}
     </View>
   );
 }

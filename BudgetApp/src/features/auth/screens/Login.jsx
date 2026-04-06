@@ -1,8 +1,4 @@
-/**
- * LoginScreen.jsx
- * Smart Finance — Login screen with animated entrance & violet theme.
- * Adjust import paths to match your project structure.
- */
+// src/features/auth/screens/LoginScreen.jsx
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -18,37 +14,50 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import C from "@/src/constants/colors";
 import InputField from "@/src/components/common/Inputfield";
 import { router } from "expo-router";
+import { loginservice } from "@/src/services/firebase/authService";
+import Loader from "@/src/components/ui/Loader";
+import { useToast } from "@/src/components/ui/Toast";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/src/services/firebase/Config";
+import { createUserModel } from "@/src/models/userModel";
+import Toast from "react-native-toast-message";
 
+WebBrowser.maybeCompleteAuthSession();
 
+// ✅ Faster staggered entrance — shorter delays, snappier spring
 function useEntranceAnim(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(24)).current;
+  const translateY = useRef(new Animated.Value(16)).current; // reduced from 24
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 520,
+        duration: 300, // reduced from 520
         delay,
         useNativeDriver: true,
       }),
       Animated.spring(translateY, {
         toValue: 0,
-        speed: 14,
-        bounciness: 5,
+        speed: 20, // faster spring
+        bounciness: 3, // less bounce = snappier
         delay,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
+
   return { opacity, transform: [{ translateY }] };
 }
 
-// ── Button with press animation ───────────────────────────────────────────────
-function AnimatedButton({ onPress, children, style, textStyle }) {
+function AnimatedButton({ onPress, children, disabled }) {
   const scale = useRef(new Animated.Value(1)).current;
   const pressIn = () =>
     Animated.spring(scale, {
-      toValue: 0.96,
+      toValue: 0.97,
       useNativeDriver: true,
       speed: 30,
     }).start();
@@ -60,14 +69,15 @@ function AnimatedButton({ onPress, children, style, textStyle }) {
     }).start();
 
   return (
-    <Animated.View style={[{ transform: [{ scale }] }, style]}>
+    <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
         activeOpacity={1}
         onPressIn={pressIn}
         onPressOut={pressOut}
         onPress={onPress}
+        disabled={disabled}
         style={{
-          backgroundColor: C.primary,
+          backgroundColor: disabled ? "#a78bfa" : C.primary,
           borderRadius: 16,
           paddingVertical: 17,
           alignItems: "center",
@@ -79,15 +89,12 @@ function AnimatedButton({ onPress, children, style, textStyle }) {
         }}
       >
         <Text
-          style={[
-            {
-              color: C.white,
-              fontSize: 16,
-              fontWeight: "700",
-              letterSpacing: 0.3,
-            },
-            textStyle,
-          ]}
+          style={{
+            color: C.white,
+            fontSize: 16,
+            fontWeight: "700",
+            letterSpacing: 0.3,
+          }}
         >
           {children}
         </Text>
@@ -96,45 +103,101 @@ function AnimatedButton({ onPress, children, style, textStyle }) {
   );
 }
 
-// ── Main Screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen({ navigation }) {
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Staggered entrance
-  const logo = useEntranceAnim(0);
-  const heading = useEntranceAnim(80);
-  const form = useEntranceAnim(160);
-  const footer = useEntranceAnim(240);
+  // ✅ Much tighter delays — content visible almost instantly
+  const heading = useEntranceAnim(0); // immediate
+  const form = useEntranceAnim(60); // 60ms
+  const footer = useEntranceAnim(120); // 120ms
 
+  // ── Google auth ─────────────────────────────────────────────────────────────
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "", // 🔑 your web client ID
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      handleGoogleResponse(response);
+    }
+  }, [response]);
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      setLoading(true);
+      const { id_token } = response.authentication;
+      const credential = GoogleAuthProvider.credential(id_token);
+      const userCred = await signInWithCredential(auth, credential);
+      const user = userCred.user;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        const userData = createUserModel({
+          fullName: user.displayName || "User",
+          email: user.email,
+          phone: user.phoneNumber || "",
+          provider: "google",
+        });
+        await setDoc(userRef, userData);
+      }
+
+      Toast.show({ type: "success", text1: "Signed in with Google " });
+      router.replace("/(tabs)");
+    } catch (error) {
+      console.log(error);
+      Toast.show({ type: "error", text1: "Google login failed" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Email login ─────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!email.trim()) e.email = "Email or phone is required";
-    else if (!/\S+@\S+\.\S+/.test(email) && !/^\+?[\d\s-]{8,}$/.test(email))
-      e.email = "Enter a valid email or phone";
+    if (!email.trim()) e.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email = "Enter a valid email";
     if (!password) e.password = "Password is required";
     else if (password.length < 6) e.password = "At least 6 characters";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleLogin = () => {
-    // if (!validate()) return;
-    setLoading(true);
-    setTimeout(() => {
+  const handleLogin = async () => {
+    if (!validate()) return;
+    try {
+      setLoading(true);
+      await loginservice(email, password);
+      // showToast({
+      //   type: "success",
+      //   message: "Signed in successfully",
+      //   duration: 3000,
+      // });
+      Toast.show({ type: "success", text1: "Logged in successfully" });
+      setTimeout(() => router.replace("/(tabs)"), 400);
+    } catch (error) {
+      console.log(error);
+
+      Toast.show({ type: "error", text1: error.message || "Failed to log in" });
+    } finally {
       setLoading(false);
-      router.replace("/(tabs)"); // uncomment when wired up
-    }, 1500);
+    }
   };
 
+  // ── UI ──────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView
       edges={["bottom", "left", "right"]}
       style={{ flex: 1, backgroundColor: C.bg }}
     >
-      {/* Decorative background blob */}
+      <Loader visible={loading} message="Signing in…" />
+
+      {/* Blobs */}
       <View
         pointerEvents="none"
         style={{
@@ -169,18 +232,17 @@ export default function LoginScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: "center", // ✅ THIS centers vertically
+            justifyContent: "center",
             paddingHorizontal: 24,
-            paddingTop: Platform.OS === "android" ? 24 : 12,
-
             paddingVertical: 24,
+            paddingTop: Platform.OS === "android" ? 24 : 12,
           }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Heading */}
-          <View style={{ marginTop: 120 }}>
-            <Animated.View style={[{ marginBottom: 32 }, heading]}>
+          <View style={{ marginTop: 80 }}>
+            {/* Heading */}
+            <Animated.View style={[{ marginBottom: 28 }, heading]}>
               <Text
                 style={{
                   fontSize: 30,
@@ -208,7 +270,7 @@ export default function LoginScreen({ navigation }) {
             <Animated.View style={form}>
               <InputField
                 type="email"
-                label="Email or Phone Number"
+                label="Email"
                 value={email}
                 onChangeText={(v) => {
                   setEmail(v);
@@ -233,23 +295,9 @@ export default function LoginScreen({ navigation }) {
               />
 
               {/* Forgot password */}
-              <TouchableOpacity
-                style={{
-                  alignSelf: "flex-end",
-                  marginTop: -6,
-                  marginBottom: 24,
-                }}
-                onPress={() => navigation?.navigate("ForgotPassword")}
-              >
-                <Text
-                  style={{ color: C.primary, fontSize: 13, fontWeight: "600" }}
-                >
-                  Forgot Password?
-                </Text>
-              </TouchableOpacity>
 
-              {/* Login CTA */}
-              <AnimatedButton onPress={handleLogin}>
+              {/* Login button */}
+              <AnimatedButton onPress={handleLogin} disabled={loading}>
                 {loading ? "Signing in…" : "Login  →"}
               </AnimatedButton>
 
@@ -258,7 +306,7 @@ export default function LoginScreen({ navigation }) {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginVertical: 22,
+                  marginVertical: 20,
                 }}
               >
                 <View
@@ -281,6 +329,8 @@ export default function LoginScreen({ navigation }) {
 
               {/* Google button */}
               <TouchableOpacity
+                onPress={() => promptAsync({ useProxy: true })}
+                disabled={!request || loading}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
@@ -295,6 +345,7 @@ export default function LoginScreen({ navigation }) {
                   shadowOpacity: 0.06,
                   shadowRadius: 8,
                   elevation: 2,
+                  opacity: !request || loading ? 0.6 : 1,
                 }}
               >
                 <Image
@@ -320,7 +371,7 @@ export default function LoginScreen({ navigation }) {
                 {
                   flexDirection: "row",
                   justifyContent: "center",
-                  marginTop: 32,
+                  marginTop: 28,
                 },
                 footer,
               ]}
@@ -330,11 +381,7 @@ export default function LoginScreen({ navigation }) {
               </Text>
               <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
                 <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "700",
-                    color: C.primary,
-                  }}
+                  style={{ fontSize: 14, fontWeight: "700", color: C.primary }}
                 >
                   Sign Up
                 </Text>
