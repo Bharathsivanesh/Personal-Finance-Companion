@@ -236,7 +236,7 @@ npx expo start
   <img src="https://github.com/user-attachments/assets/0b459093-0294-4404-90ec-50822a776c6c" width="250"/>
 </p>
 
-### 💸 Transactions
+### 💸 Home & Transactions
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2614ef8d-9166-4274-9f93-9a65fc0b152b" width="250"/>
   <img src="https://github.com/user-attachments/assets/2981ba23-231c-4634-a21f-54a7d3f2d5ea" width="250"/>
