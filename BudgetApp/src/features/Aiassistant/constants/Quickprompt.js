@@ -24,8 +24,8 @@ const QUICK_PROMPTS = [
     bg: "#e8fdf0",
   },
   {
-    icon: "alert-circle",
-    label: "Am I over budget?",
+    icon: "today-outline",
+    label: "Today's summary",
     color: "#3b82f6",
     bg: "#eff6ff",
   },

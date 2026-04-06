@@ -15,7 +15,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import C from "../../../constants/colors";
-export default function InputBar({ input, setInput, isLoading, onSend, tabBarTotalHeight }) {
+export default function InputBar({
+  input,
+  setInput,
+  isLoading,
+  onSend,
+  tabBarTotalHeight,
+}) {
   return (
     <View
       style={{
@@ -122,7 +128,7 @@ export default function InputBar({ input, setInput, isLoading, onSend, tabBarTot
           marginTop: 8,
         }}
       >
-        Aria uses your transaction data · Responses are AI-generated
+        AI uses your transaction data · Responses are AI-generated
       </Text>
     </View>
   );

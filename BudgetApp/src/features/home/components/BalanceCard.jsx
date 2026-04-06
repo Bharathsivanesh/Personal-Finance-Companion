@@ -1,15 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Text, View,  Animated, } from "react-native";
+import { Text, View, Animated } from "react-native";
 import React, { useRef, useEffect } from "react";
-export default function BalanceCard() {
+export default function BalanceCard({ data }) {
   const scaleAnim = useRef(new Animated.Value(0.96)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, tension: 60, friction: 8, useNativeDriver: true }),
-      Animated.timing(opacityAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 60,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
 
@@ -71,21 +80,11 @@ export default function BalanceCard() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Ionicons name="calendar-outline" size={16} color="#e9d5ff" />
             <Text style={{ color: "#e9d5ff", fontSize: 14, fontWeight: "600" }}>
-              April 2026
+              {new Date().toLocaleDateString("en-IN", {
+                month: "long",
+                year: "numeric",
+              })}
             </Text>
-            <Ionicons name="chevron-down" size={14} color="#e9d5ff" />
-          </View>
-          <View
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: "rgba(255,255,255,0.15)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name="arrow-forward" size={15} color="#fff" />
           </View>
         </View>
 
@@ -102,15 +101,7 @@ export default function BalanceCard() {
               Current Balance
             </Text>
             <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>
-              ₹-50.00
-            </Text>
-          </View>
-          <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ color: "#c4b5fd", fontSize: 11, marginBottom: 2 }}>
-              Total Balance
-            </Text>
-            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>
-              ₹-50.00
+              ₹{data?.balance || 0}
             </Text>
           </View>
         </View>
@@ -144,7 +135,7 @@ export default function BalanceCard() {
             <View>
               <Text style={{ color: "#c4b5fd", fontSize: 10 }}>Income</Text>
               <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>
-                ₹50.00
+                ₹{data?.totalIncome || 0}
               </Text>
             </View>
           </View>
@@ -176,7 +167,7 @@ export default function BalanceCard() {
             <View>
               <Text style={{ color: "#c4b5fd", fontSize: 10 }}>Expenses</Text>
               <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>
-                ₹100.00
+                ₹{data?.totalExpense || 0}
               </Text>
             </View>
           </View>

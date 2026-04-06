@@ -1,9 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-  View,
-  Text,
-
-} from "react-native";
+import { View, Text } from "react-native";
 export default function StreakBanner() {
   return (
     <View
@@ -24,18 +20,6 @@ export default function StreakBanner() {
       <Text style={{ fontSize: 13, fontWeight: "600", color: "#4b3fa0" }}>
         🔥 1 Days of Empowering Financial Growth
       </Text>
-      <View
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: "#f3eeff",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Ionicons name="settings-outline" size={16} color="#7c4de8" />
-      </View>
     </View>
   );
 }

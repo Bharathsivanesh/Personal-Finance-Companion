@@ -116,14 +116,10 @@ export default function AIHeader({ onBack }) {
           style={{
             width: 36,
             height: 36,
-            borderRadius: 18,
-            backgroundColor: "rgba(255,255,255,0.15)",
             alignItems: "center",
             justifyContent: "center",
           }}
-        >
-          <Ionicons name="ellipsis-horizontal" size={18} color="#fff" />
-        </TouchableOpacity>
+        ></TouchableOpacity>
       </View>
 
       <View style={{ alignItems: "center" }}>
@@ -180,7 +176,7 @@ export default function AIHeader({ onBack }) {
             letterSpacing: -0.3,
           }}
         >
-          Aria
+          AI
         </Text>
         <Text
           style={{

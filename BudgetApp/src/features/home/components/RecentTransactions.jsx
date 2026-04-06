@@ -1,8 +1,9 @@
 import { Text, TouchableOpacity, View } from "react-native";
 import TransactionItem from "../../../components/common/TransactionItemCard";
 import { Ionicons } from "@expo/vector-icons";
-
-export default function RecentTransactions() {
+import { router } from "expo-router";
+import C from "@/src/constants/colors";
+export default function RecentTransactions({ data }) {
   return (
     <View style={{ marginHorizontal: 16, marginBottom: 18 }}>
       <View
@@ -19,6 +20,7 @@ export default function RecentTransactions() {
           </Text>
         </View>
         <TouchableOpacity
+          onPress={() => router.replace("/(tabs)/transactions")}
           style={{
             width: 28,
             height: 28,
@@ -37,33 +39,61 @@ export default function RecentTransactions() {
           backgroundColor: "#fff",
           borderRadius: 18,
           paddingHorizontal: 14,
-          shadowColor: "#7c4de8",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.07,
-          shadowRadius: 10,
-          elevation: 3,
         }}
       >
-        <TransactionItem
-          icon="cash"
-          iconBg="#e8fdf0"
-          iconColor="#22c55e"
-          title="Salary"
-          subtitle="Salary"
-          date="03 Apr 26  1:26 AM"
-          amount="50.00"
-          isIncome={true}
-        />
-        <TransactionItem
-          icon="gift"
-          iconBg="#fef3e2"
-          iconColor="#f59e0b"
-          title="Fun & Holiday Expenses"
-          subtitle="Hotel Rent/Food"
-          date="03 Apr 26  1:25 AM"
-          amount="100.00"
-          isIncome={false}
-        />
+        {data.length === 0 ? (
+          <View style={{ alignItems: "center", paddingVertical: 32 }}>
+            <View
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 38,
+                backgroundColor: C.primaryPale,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 14,
+              }}
+            >
+              <Ionicons
+                name="receipt-outline"
+                size={36}
+                color={C.primaryLight}
+              />
+            </View>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "700",
+                color: C.dark,
+                marginBottom: 4,
+              }}
+            >
+              No Transactions Found
+            </Text>
+            <Text style={{ fontSize: 12, color: "#9ca3af" }}>
+              Add your first transaction to get started
+            </Text>
+          </View>
+        ) : (
+          data.map((item) => {
+            const date = item.createdAt?.toDate();
+
+            return (
+              <TransactionItem
+                key={item.id}
+                icon={item.type === "income" ? "cash" : "card"}
+                iconBg={item.type === "income" ? "#e8fdf0" : "#fef3e2"}
+                iconColor={item.type === "income" ? "#22c55e" : "#f59e0b"}
+                title={item.category || item.type}
+                subtitle={item.paymentMode || ""}
+                date={date?.toLocaleString()}
+                amount={item.amount}
+                isIncome={item.type === "income"}
+                type={item.type}
+              />
+            );
+          })
+        )}
       </View>
     </View>
   );

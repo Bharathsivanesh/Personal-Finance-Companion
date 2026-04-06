@@ -1,8 +1,17 @@
 import { useEffect, useRef } from "react";
-import { Animated, Dimensions, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  Dimensions,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import C from "../../../constants/colors";
 export default function AboutAppModal({ visible, onClose }) {
-    const { height: SCREEN_H, width: SCREEN_W } = Dimensions.get("window");
+  const { height: SCREEN_H, width: SCREEN_W } = Dimensions.get("window");
   const slideAnim = useRef(new Animated.Value(SCREEN_H)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
@@ -49,19 +58,19 @@ export default function AboutAppModal({ visible, onClose }) {
       desc: "Log income and expenses with categories, tags and notes",
     },
     {
-      icon: "🎯",
-      title: "Goal Setting",
-      desc: "Set savings goals and track your progress visually in real time",
+      icon: "📊",
+      title: "Smart Insights & Analytics",
+      desc: "Visualize your finances with interactive graphs, streak tracking, trending charts, and category-wise breakdowns for income and expenses across daily, weekly, and yearly views.",
     },
     {
-      icon: "🔔",
-      title: "Budget Alerts",
-      desc: "Get notified when you approach your spending limits",
+      icon: "🤖",
+      title: "AI Financial Assistant",
+      desc: "Ask anything about your spending. Get smart insights, personalized tips, and guidance to manage your budget better using AI-powered analysis.",
     },
     {
-      icon: "🔒",
-      title: "Bank-level Security",
-      desc: "All data encrypted at rest and in transit. Your privacy is paramount",
+      icon: "📁",
+      title: "Transaction Records & Attachments",
+      desc: "Upload bills, receipts, and documents with your transactions. Keep everything organized and easily accessible whenever you need it.",
     },
   ];
 
@@ -156,7 +165,7 @@ export default function AboutAppModal({ visible, onClose }) {
               Smart Finance
             </Text>
             <Text style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
-              Version 2.4.0 · Your intelligent money companion
+              Version 1.0.0 · Your intelligent money companion
             </Text>
           </View>
 
@@ -252,7 +261,7 @@ export default function AboutAppModal({ visible, onClose }) {
               marginTop: 22,
             }}
           >
-            Made with 💜 · © 2026 Smart Finance
+            Developed by Bharath Sivanesh · © 2026 Smart Finance
           </Text>
         </ScrollView>
       </Animated.View>

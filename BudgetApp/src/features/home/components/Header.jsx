@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
 
-export default function Header() {
+export default function Header({ userData }) {
   return (
     <View
       style={{
@@ -28,30 +28,13 @@ export default function Header() {
           <Ionicons name="wallet" size={18} color="#fff" />
         </LinearGradient>
         <Text style={{ fontSize: 16, fontWeight: "700", color: "#1a1035" }}>
-          Hi, Bharath 👋
+          Hi, {userData?.fullName || "User"} 👋👋
         </Text>
       </View>
 
       {/* Right pills */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-
         {/* Leaf icon */}
-
-        {/* Bell */}
-        <View
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: "#f3eeff",
-            alignItems: "center",
-            justifyContent: "center",
-            borderWidth: 1,
-            borderColor: "#e0d7f8",
-          }}
-        >
-          <Ionicons name="notifications-outline" size={15} color="#7c4de8" />
-        </View>
       </View>
     </View>
   );

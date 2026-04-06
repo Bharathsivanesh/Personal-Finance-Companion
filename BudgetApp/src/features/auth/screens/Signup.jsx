@@ -1,8 +1,4 @@
-/**
- * SignUpScreen.jsx
- * Smart Finance — Sign Up screen with animated entrance, validation & violet theme.
- * Adjust import paths to match your project structure.
- */
+// src/features/auth/screens/SignUpScreen.jsx
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -12,43 +8,48 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
-  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import C from "@/src/constants/colors";
 import InputField from "@/src/components/common/Inputfield";
 import { router } from "expo-router";
 import PasswordStrength from "../components/PasswordStrength";
+import { signupservice } from "@/src/services/firebase/authService";
+import { useToast } from "@/src/components/ui/Toast";
+import Loader from "@/src/components/ui/Loader";
+import Toast from "react-native-toast-message";
 
+// ✅ Fast entrance — content visible almost immediately
 function useEntranceAnim(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(28)).current;
+  const translateY = useRef(new Animated.Value(14)).current; // reduced from 28
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 520,
+        duration: 280, // reduced from 520
         delay,
         useNativeDriver: true,
       }),
       Animated.spring(translateY, {
         toValue: 0,
-        speed: 13,
-        bounciness: 5,
+        speed: 22, // faster
+        bounciness: 2, // less bounce
         delay,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
+
   return { opacity, transform: [{ translateY }] };
 }
 
-
-function AnimatedButton({ onPress, children, loading }) {
+function AnimatedButton({ onPress, loading }) {
   const scale = useRef(new Animated.Value(1)).current;
   const pressIn = () =>
     Animated.spring(scale, {
-      toValue: 0.96,
+      toValue: 0.97,
       useNativeDriver: true,
       speed: 30,
     }).start();
@@ -66,8 +67,9 @@ function AnimatedButton({ onPress, children, loading }) {
         onPressIn={pressIn}
         onPressOut={pressOut}
         onPress={onPress}
+        disabled={loading}
         style={{
-          backgroundColor: C.primary,
+          backgroundColor: loading ? "#a78bfa" : C.primary,
           borderRadius: 16,
           paddingVertical: 17,
           alignItems: "center",
@@ -93,26 +95,23 @@ function AnimatedButton({ onPress, children, loading }) {
   );
 }
 
-
-
 export default function SignUpScreen({ navigation }) {
+  const { showToast } = useToast();
+
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Staggered entrance
+  // ✅ Tighter delays — all content visible within 150ms
   const heading = useEntranceAnim(0);
-  const fields1 = useEntranceAnim(80);
-  const fields2 = useEntranceAnim(160);
-  const fields3 = useEntranceAnim(240);
-  const cta = useEntranceAnim(310);
+  const fields1 = useEntranceAnim(50);
+  const fields2 = useEntranceAnim(100);
+  const fields3 = useEntranceAnim(150);
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -130,26 +129,52 @@ export default function SignUpScreen({ navigation }) {
       e.email = "Enter a valid email address";
     if (!form.password) e.password = "Password is required";
     else if (form.password.length < 6) e.password = "At least 6 characters";
-    if (!form.confirmPassword) e.confirmPassword = "Please confirm password";
-    else if (form.password !== form.confirmPassword)
-      e.confirmPassword = "Passwords do not match";
-    if (!agreed) e.terms = "Please accept the terms to continue";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!validate()) return;
-    setLoading(true);
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      await signupservice(form);
+
+      Toast.show({ type: "success", text1: "Account created successfully!" });
+      setTimeout(() => router.replace("/(tabs)"), 400);
+    } catch (error) {
+      console.log(error);
+      const errorMessages = {
+        "auth/email-already-in-use": {
+          message: "Email already in use",
+          description: "Try logging in instead",
+        },
+        "auth/invalid-email": {
+          message: "Invalid email",
+          description: "Please enter a valid email",
+        },
+        "auth/weak-password": {
+          message: "Weak password",
+          description: "Use at least 6 characters",
+        },
+      };
+      const mapped = errorMessages[error.code] ?? {
+        message: "Something went wrong",
+        description: "",
+      };
+      Toast.show({
+        type: "error",
+        text1: mapped.message || "Failed to sign up",
+      });
+    } finally {
       setLoading(false);
-      // navigation.replace("Main");
-    }, 1600);
+    }
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-      {/* Decorative blobs */}
+      <Loader visible={loading} message="Creating account…" />
+
+      {/* Blobs */}
       <View
         pointerEvents="none"
         style={{
@@ -184,6 +209,7 @@ export default function SignUpScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
+            justifyContent: "center",
             paddingHorizontal: 24,
             paddingTop: Platform.OS === "android" ? 24 : 12,
             paddingBottom: 40,
@@ -191,9 +217,9 @@ export default function SignUpScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ marginTop: 35 }}>
+          <View style={{ marginTop: 24 }}>
             {/* Heading */}
-            <Animated.View style={[{ marginBottom: 28 }, heading]}>
+            <Animated.View style={[{ marginBottom: 24 }, heading]}>
               <Text
                 style={{
                   fontSize: 30,
@@ -219,7 +245,7 @@ export default function SignUpScreen({ navigation }) {
               </Text>
             </Animated.View>
 
-            {/* Row 1 — Name & Phone */}
+            {/* Name + Phone */}
             <Animated.View style={fields1}>
               <InputField
                 type="text"
@@ -239,7 +265,7 @@ export default function SignUpScreen({ navigation }) {
               />
             </Animated.View>
 
-            {/* Row 2 — Email */}
+            {/* Email */}
             <Animated.View style={fields2}>
               <InputField
                 type="email"
@@ -251,7 +277,7 @@ export default function SignUpScreen({ navigation }) {
               />
             </Animated.View>
 
-            {/* Row 3 — Passwords */}
+            {/* Password */}
             <Animated.View style={fields3}>
               <InputField
                 type="password"
@@ -259,96 +285,22 @@ export default function SignUpScreen({ navigation }) {
                 value={form.password}
                 onChangeText={(v) => update("password", v)}
                 error={errors.password}
-                returnKeyType="next"
+                returnKeyType="done"
+                onSubmitEditing={handleSignUp}
               />
               <PasswordStrength password={form.password} />
-            </Animated.View>
-
-            {/* Terms */}
-            <Animated.View style={[cta]}>
-              {errors.terms ? (
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "600",
-                    color: C.red,
-                    marginLeft: 4,
-                    marginBottom: 14,
-                  }}
-                >
-                  ⚠ {errors.terms}
-                </Text>
-              ) : null}
 
               {/* CTA */}
-              <AnimatedButton onPress={handleSignUp} loading={loading} />
-
-              {/* Divider */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginVertical: 22,
-                }}
-              >
-                <View
-                  style={{ flex: 1, height: 1, backgroundColor: C.border }}
-                />
-                <Text
-                  style={{
-                    marginHorizontal: 14,
-                    fontSize: 13,
-                    color: C.faint,
-                    fontWeight: "500",
-                  }}
-                >
-                  or
-                </Text>
-                <View
-                  style={{ flex: 1, height: 1, backgroundColor: C.border }}
-                />
+              <View style={{ marginTop: 8 }}>
+                <AnimatedButton onPress={handleSignUp} loading={loading} />
               </View>
 
-              {/* Google */}
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 16,
-                  borderWidth: 1.5,
-                  borderColor: C.border,
-                  paddingVertical: 15,
-                  backgroundColor: C.white,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
-                  elevation: 2,
-                }}
-              >
-                <Image
-                  source={require("@/assets/images/googleicon.png")}
-                  style={{ width: 20, height: 20, marginRight: 10 }}
-                />
-                <Text
-                  style={{
-                    fontSize: 15,
-                    fontWeight: "600",
-                    color: C.dark,
-                    letterSpacing: 0.2,
-                  }}
-                >
-                  Sign up with Google
-                </Text>
-              </TouchableOpacity>
-
-              {/* Footer link */}
+              {/* Footer */}
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "center",
-                  marginTop: 28,
+                  marginTop: 24,
                 }}
               >
                 <Text

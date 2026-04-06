@@ -19,12 +19,23 @@ import {
   Dimensions,
   Image,
 } from "react-native";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import C from "@/src/constants/colors";
 import AboutAppModal from "../components/AboutAppModal";
 import TapRow from "../components/TapRow";
 import InfoRow from "../components/InfoRow";
 import AvatarInitials from "../components/AvatarInitials";
+import EditProfileModal from "../components/EditProfileModal";
+import {
+  getUserProfile,
+  logoutService,
+  updateUserProfile,
+} from "../services/userService";
+import { useToast } from "@/src/components/ui/Toast";
+import Loader from "@/src/components/ui/Loader";
+import { useTransactionRefresh } from "@/src/context/TransactionContext";
+import Toast from "react-native-toast-message";
 
 function useEntrance(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -49,13 +60,6 @@ function useEntrance(delay = 0) {
   return { opacity, transform: [{ translateY: ty }] };
 }
 
-const USER = {
-  name: "Bharath Sivanesh",
-  email: "bharathsivanesh@gmail.com",
-  phone: "+91 9025368695",
-  plan: "Trial",
-};
-
 export default function ProfileScreen() {
   const [aboutVisible, setAboutVisible] = useState(false);
 
@@ -63,12 +67,85 @@ export default function ProfileScreen() {
   const section1 = useEntrance(80);
   const section2 = useEntrance(160);
   const section3 = useEntrance(240);
+  const [userData, setUserData] = useState(null);
+  const [editVisible, setEditVisible] = useState(false);
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const { triggerRefresh } = useTransactionRefresh();
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getUserProfile();
+
+      if (data) {
+        setUserData(data);
+      } else {
+        Toast.show({ type: "info", text1: "No profile data found" });
+      }
+    } catch (error) {
+      console.log(error);
+
+      Toast.show({ type: "error", text1: "Failed to load profile" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const USER = {
+    name: userData?.fullName || "User",
+    email: userData?.email || "",
+    phone: userData?.phone || "",
+    plan: "Trial",
+  };
+
+  const handleSave = async (updatedData) => {
+    try {
+      setLoading(true);
+
+      const success = await updateUserProfile(updatedData);
+
+      if (success) {
+        Toast.show({ type: "success", text1: "Profile updated successfully" });
+
+        setEditVisible(false);
+
+        await loadProfile(); // refresh latest data
+        triggerRefresh();
+      } else {
+        Toast.show({ type: "error", text1: "Failed to update profile" });
+      }
+    } catch (error) {
+      console.log(error);
+
+      Toast.show({ type: "error", text1: "Failed to update profile" });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleLogout = async () => {
+    try {
+      await logoutService();
+
+      router.replace("/(auth)/login"); // 🔥 reset navigation
+    } catch (error) {
+      console.log("Logout Error:", error);
+    }
+  };
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
       style={{ flex: 1, backgroundColor: C.bg }}
     >
+      <Loader visible={loading} />
       {/* ── Violet gradient header ── */}
       <Animated.View style={headerAnim}>
         <View
@@ -128,6 +205,7 @@ export default function ProfileScreen() {
             </Text>
             {/* Log out */}
             <TouchableOpacity
+              onPress={handleLogout}
               style={{
                 backgroundColor: "rgba(255,255,255,0.15)",
                 borderRadius: 10,
@@ -175,40 +253,6 @@ export default function ProfileScreen() {
               >
                 {USER.email}
               </Text>
-              {/* Plan badge */}
-              <View
-                style={{
-                  alignSelf: "flex-start",
-                  backgroundColor: "rgba(255,255,255,0.18)",
-                  borderRadius: 20,
-                  paddingHorizontal: 12,
-                  paddingVertical: 4,
-                  borderWidth: 1,
-                  borderColor: "rgba(255,255,255,0.3)",
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <View
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: C.green,
-                    marginRight: 6,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "700",
-                    color: C.white,
-                    letterSpacing: 0.3,
-                  }}
-                >
-                  {USER.plan} Plan
-                </Text>
-              </View>
             </View>
           </View>
         </View>
@@ -272,6 +316,7 @@ export default function ProfileScreen() {
 
             {/* Edit profile button */}
             <TouchableOpacity
+              onPress={() => setEditVisible(true)}
               style={{
                 marginTop: 4,
                 borderRadius: 12,
@@ -286,7 +331,6 @@ export default function ProfileScreen() {
                   color: C.primary,
                   fontWeight: "700",
                   fontSize: 14,
-                  letterSpacing: 0.2,
                 }}
               >
                 Edit Profile
@@ -348,7 +392,7 @@ export default function ProfileScreen() {
               label="About Smart Finance"
               onPress={() => setAboutVisible(true)}
             />
-            <TapRow icon="🔖" label="App Version" value="2.4.0" />
+            <TapRow icon="🔖" label="App Version" value="1.0.0" />
           </View>
         </Animated.View>
         <View style={{ height: 100 }} />
@@ -358,6 +402,13 @@ export default function ProfileScreen() {
       <AboutAppModal
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
+      />
+
+      <EditProfileModal
+        visible={editVisible}
+        user={userData}
+        onClose={() => setEditVisible(false)}
+        onSave={handleSave}
       />
     </SafeAreaView>
   );

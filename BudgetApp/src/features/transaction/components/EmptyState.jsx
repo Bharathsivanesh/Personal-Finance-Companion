@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 import C from "../../../constants/colors";
-export default function EmptyState({ typeFilter }) {
+export default function EmptyState({ typeFilter="" }) {
   const msgs = {
     Income: ["No income found", "Try a different date range or search term."],
     Expense: [
@@ -17,7 +17,8 @@ export default function EmptyState({ typeFilter }) {
       style={{
         alignItems: "center",
         justifyContent: "center",
-        paddingVertical: 60,
+        paddingTop: 5,
+        paddingBottom: 60,
       }}
     >
       <View
