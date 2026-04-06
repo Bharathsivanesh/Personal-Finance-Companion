@@ -246,7 +246,7 @@ npx expo start
 
 ## 📁 APK / Build
 
-(Add APK link here)
+```https://expo.dev/accounts/sivaneshs/projects/BudgetApp/builds/1fbd29a5-4680-456b-9dc6-0e32620f5d10```
 
 ---
 
