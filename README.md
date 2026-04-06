@@ -229,7 +229,7 @@ npx expo start
 
 ### 📸 App Screenshots
 
-### 📱 Dashboard & Overview
+### 📱 Auth Screens & Splash Screen
 <p align="center">
   <img src="https://github.com/user-attachments/assets/63ac5f4c-c9ed-4e98-8674-96102df7cbcc" width="250"/>
   <img src="https://github.com/user-attachments/assets/473e2fbf-de3a-4cb8-819c-bee7979f5c93" width="250"/>
