@@ -3,14 +3,8 @@
 ## 🚀 Overview
 
 This is a mobile application built as part of the Zorhyn Mobile Developer Internship assignment. The app is designed to help users track their daily financial activities in a simple, structured, and engaging way.
-
-The focus of this project is not just functionality, but **product thinking, clean architecture, and smooth user experience**.
-
 ---
-
 ## 🧠 Product Thinking
-
-This app is built as a **lightweight personal finance companion**, not a banking app.
 
 It helps users:
 
@@ -18,7 +12,8 @@ It helps users:
 * Understand spending patterns
 * Monitor savings
 * Build financial habits (streaks & goals)
-* Get insights using AI
+* Get insights through charts
+* AI Assistant
 
 ---
 
@@ -283,102 +278,4 @@ This project demonstrates:
 * Clean UI/UX
 * Efficient state & data handling
 
-The focus was on building a **polished, usable, and scalable mobile app**, rather than just adding features.
 
----
-
-# 📘 Detailed Documentation
-
-## 🧭 Development Journey
-
-### Step 1: Planning
-
-* Understood requirements
-* Defined features
-* Researched similar apps
-
-### Step 2: UI Design
-
-* Created UI sketches
-* Referenced modern finance apps
-* Focused on clarity & simplicity
-
-### Step 3: Architecture Setup
-
-* Feature-based folder structure
-* Context + hooks setup
-
-### Step 4: UI Development
-
-* Built screens first
-* Ensured responsiveness
-
-### Step 5: Backend Integration
-
-* Firebase setup
-* Firestore schema design
-* Supabase storage setup
-
-### Step 6: Optimization
-
-* Indexed queries
-* Reduced re-renders
-
-### Step 7: Testing
-
-* Functional testing
-* UX improvements
-
----
-
-## 🧱 Database Design (Firestore)
-
-Collections:
-
-* users
-* transactions
-
-Transaction Fields:
-
-* amount
-* type
-* category
-* date
-* note
-* receiptUrl
-
----
-
-## 🔁 State Flow
-
-* Global state via Context
-* Custom hooks for:
-
-  * fetching data
-  * updating data
-  * syncing UI
-
----
-
-## 🎯 Key Highlights
-
-* Feature-based architecture
-* Real-world Git workflow
-* AI integration
-* Optimized data handling
-
----
-
-## 📎 Submission Notes
-
-* Google OAuth partially implemented
-* All core features completed
-* Focused on UX & structure over complexity
-
----
-
-## 👨‍💻 Author
-
-Bharath Sivanesh
-
----
