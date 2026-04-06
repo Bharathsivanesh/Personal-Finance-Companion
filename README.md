@@ -220,7 +220,7 @@ npx expo start
 
 ## 📁 APK / Build
 
-```https://expo.dev/accounts/sivaneshs/projects/BudgetApp/builds/1fbd29a5-4680-456b-9dc6-0e32620f5d10```
+```https://expo.dev/accounts/sivaneshs/projects/BudgetApp/builds/92404e8a-d4f9-4244-b784-6ffd905b4606```
 
 ---
 
