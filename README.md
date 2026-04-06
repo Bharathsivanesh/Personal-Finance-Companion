@@ -2,229 +2,181 @@
 
 ## 🚀 Overview
 
-This is a mobile application built as part of the Zorhyn Mobile Developer Internship assignment. The app is designed to help users track their daily financial activities in a simple, structured, and engaging way.
+This is a personal finance mobile app built using React Native.  
+The goal of this app is to help users easily track their daily expenses, understand their spending habits, and stay consistent with managing their money.
+
+The app focuses on simplicity, usability, and a smooth mobile experience.
+
 ---
-## 🧠 Product Thinking
 
-It helps users:
+## 🧠 What This App Does
 
-* Track income and expenses
-* Understand spending patterns
-* Monitor savings
-* Build financial habits (streaks & goals)
-* Get insights through charts
-* AI Assistant
+- Track income and expenses
+- View spending patterns with charts
+- Manage transactions with filters
+- Maintain daily tracking streaks
+- Get insights using an AI assistant
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-
-* React Native (Expo)
-* NativeWind (Tailwind for React Native)
-* React Native Paper (UI Components)
+- React Native (Expo)
+- NativeWind (for styling)
+- React Native Paper
 
 ### State Management
-
-* Context API
-* Custom Hooks
+- Context API
+- Custom Hooks
 
 ### Backend & Database
-
-* Firebase Authentication (Email/Password)
-* Firestore (Database)
+- Firebase Authentication
+- Firestore Database
 
 ### Storage
+- Supabase (for receipt images)
 
-* Supabase (Receipt Image Storage)
-
-### Charts & Visualization
-
-* React Native Charts
+### Charts
+- React Native Charts
 
 ---
 
-## 📂 Folder Structure (Feature-Based)
+## 📂 Project Structure
 
-```
-src/
- ├── features/
- │    ├── auth/
- │    ├── transactions/
- │    ├── dashboard/
- │    ├── insights/
- │    ├── profile/
- │    └── ai/
- │
- ├── components/
- ├── hooks/
- ├── context/
- ├── services/
- ├── utils/
- └── constants/
-```
+This project follows a **feature-based folder structure** for better scalability and organization.
+add photot
+
+
+Each feature contains its own screens, components, and logic, making the project easier to maintain and extend.
 
 ---
 
 ## 🔄 App Flow
 
-1. Splash Screen
-2. Login / Signup
-3. Home Dashboard
-4. Add Transaction (Modal)
-5. Transaction History
-6. Insights Screen
-7. Profile Screen
-8. AI Assistant
+1. Splash Screen  
+2. Login / Signup  
+3. Home Dashboard  
+4. Add Transaction  
+5. Transaction History  
+6. Insights Screen  
+7. Profile Screen  
+8. AI Assistant  
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### 🏠 Home Dashboard
-
-* Current Balance
-* Total Income
-* Total Expenses
-* Savings Overview
-* Recent Transactions
-* Weekly/Monthly Filters
-* Visual Charts (Income vs Expense)
+### 🏠 Dashboard
+- Shows balance, income, and expenses
+- Recent transactions
+- Chart overview
 
 ---
 
-### 💸 Transaction Management
-
-* Add Transaction (Income / Expense / Transfer)
-* Edit & Delete
-* Category selection
-* Date & Notes
-* Receipt Upload (via Supabase)
-
-#### Filters:
-
-* Type: All / Income / Expense / Transfer
-* Time: Today / Week / Month / All
+### 💸 Transactions
+- Add, edit, delete transactions
+- Supports income, expense, transfer
+- Filters by type and date
+- Upload receipt images
 
 ---
 
-### 📊 Insights Screen
-
-* Category Breakdown
-* Income vs Expense Trend
-* Top Spending Category
-* Weekly & Monthly Comparisons
+### 📊 Insights
+- Spending breakdown
+- Category analysis
+- Trends over time
 
 ---
 
-### 🎯 Unique Feature (Streak System)
-
-* Tracks daily financial activity
-* Encourages consistent usage
-* Visual heatmap-style tracking
+### 🎯 Streak System
+- Tracks daily activity
+- Encourages consistent usage
 
 ---
 
 ### 🤖 AI Assistant
-
-* Chat-based interface
-* Answers based on user financial data
-* Quick prompts:
-
-  * "Where did I spend the most?"
-  * "How can I save more?"
-  * "Show my spending breakdown"
-
----
-
-### 👤 Profile Screen
-
-* User details
-* App settings
-* Logout
+- Chat-based interface
+- Answers questions based on user data
+- Quick prompts for insights
 
 ---
 
 ## 🔐 Authentication
 
-### Implemented:
-
-* Email & Password (Firebase Auth)
-
-### Attempted:
-
-* Google OAuth (Not fully working due to redirect URI issue)
-
-> Issue: 401 Unauthorized (Authorized redirect URIs mismatch)
+- Implemented secure login using Firebase Email & Password authentication  
+- Google OAuth was started but not fully completed due to redirect URI configuration issues  
+- Encountered a 401 Unauthorized error related to authorized redirect URIs  
 
 ---
 
 ## ⚡ Performance Optimizations
 
-* Custom hooks to avoid unnecessary API calls
-* Firestore indexing for faster queries
-* Efficient state updates
-* Lazy data refresh mechanism
+- Used custom hooks to avoid unnecessary API calls and re-fetching  
+- Applied Firestore indexing for faster query performance  
+- Managed state updates efficiently to reduce re-renders  
+- Implemented a lazy refresh approach to keep data updated without excessive calls  
 
 ---
 
-## 🧪 Testing Strategy
+## 🧪 Testing
 
-* Unit-level testing (logic validation)
-* UI testing (manual)
-* Performance testing
-* UX testing
+- Tested core logic at a unit level  
+- Performed manual UI testing across different screens  
+- Checked performance for smooth data loading and rendering  
+- Reviewed user flows to ensure a consistent experience  
 
 ---
 
-## 🎨 UI/UX Considerations
+## 🎨 UI/UX
 
-* Clean and minimal design
-* Touch-friendly interactions
-* Smooth navigation
-* Empty states
-* Loading indicators
-* Error handling
-* Toast messages
+- Designed a clean and minimal interface  
+- Ensured touch-friendly interactions for mobile users  
+- Maintained smooth navigation across screens  
+- Handled empty states, loading states, and error states properly  
+- Added toast messages for user feedback  
 
 ---
 
 ## 🔄 Development Workflow
 
-Followed a production-level Git workflow:
+Followed a structured Git workflow:
 
-* main → production
-* staging → testing
-* feature branches → development
+- `main` → production-ready code  
+- `staging` → testing environment  
+- `feature` branches → individual feature development  
 
-Flow:
-
-1. Create feature branch
-2. Merge into staging
-3. Test in staging
-4. Merge to production
+### Flow:
+1. Created feature branches  
+2. Merged features into staging  
+3. Tested in staging  
+4. Merged stable code into main  
 
 ---
 
 ## 🧩 Challenges Faced
 
-* Firebase Web SDK configuration issues
-* Firestore query optimization
-* Supabase storage policies
-* Google OAuth redirect URI errors
+- Setting up Firebase Web SDK correctly within React Native (Expo)  
+- Optimizing Firestore queries for better performance  
+- Configuring Supabase storage policies for secure file uploads  
+- Debugging Google OAuth redirect URI issues  
+
+### 🔐 Authentication
+- Email & Password login (Firebase)
+
+> Note: Google login was started but not completed due to redirect configuration issue.
+ 
 
 ---
 
 ## 📦 Installation & Setup
 
 ```bash
+git clone https://github.com/Bharathsivanesh/Personal-Finance-Companion.git
+cd BudgetApp
 npm install
 npx expo start
 ```
-
----
-
 ## 📸 Screenshots & Demo
 
 ### 📸 App Screenshots
@@ -266,12 +218,6 @@ npx expo start
 
 ---
 
-## 📹 Demo Video
-
-(Add video link here)
-
----
-
 ## 📁 APK / Build
 
 ```https://expo.dev/accounts/sivaneshs/projects/BudgetApp/builds/1fbd29a5-4680-456b-9dc6-0e32620f5d10```
@@ -305,5 +251,3 @@ This project demonstrates:
 * Product thinking
 * Clean UI/UX
 * Efficient state & data handling
-
-
