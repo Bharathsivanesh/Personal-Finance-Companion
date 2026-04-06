@@ -227,7 +227,18 @@ npx expo start
 
 ## 📸 Screenshots & Demo
 
-(Add screenshots here)
+![Image](https://github.com/user-attachments/assets/63ac5f4c-c9ed-4e98-8674-96102df7cbcc)
+![Image](https://github.com/user-attachments/assets/473e2fbf-de3a-4cb8-819c-bee7979f5c93)
+![Image](https://github.com/user-attachments/assets/0b459093-0294-4404-90ec-50822a776c6c)
+![Image](https://github.com/user-attachments/assets/2614ef8d-9166-4274-9f93-9a65fc0b152b)
+![Image](https://github.com/user-attachments/assets/2981ba23-231c-4634-a21f-54a7d3f2d5ea)
+![Image](https://github.com/user-attachments/assets/646a0b72-aea6-41b2-b043-bcef7e4fb87c)
+![Image](https://github.com/user-attachments/assets/57a7bdfa-af48-4f54-a15f-0333e52415f0)
+![Image](https://github.com/user-attachments/assets/77464a22-29ec-4813-b1ce-f6e4affdb32b)
+![Image](https://github.com/user-attachments/assets/d400eb20-105e-431e-a11b-7fa73d6ed88c)
+![Image](https://github.com/user-attachments/assets/b69e7673-9735-4d06-96b4-cb3702aa398f)
+![Image](https://github.com/user-attachments/assets/65bbe45b-20e8-4a94-81de-34114dc19ac0)
+![Image](https://github.com/user-attachments/assets/a8e5fb1c-3209-4217-9d30-5370c86a30d1)
 
 * Splash Screen
 * Login / Signup
