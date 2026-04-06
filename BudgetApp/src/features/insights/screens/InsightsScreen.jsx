@@ -115,79 +115,81 @@ export default function InsightsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-      <Loader visible={loading} />
-      {/* Top Bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 20,
-          paddingTop: Platform.OS === "android" ? 16 : 4,
-          paddingBottom: 12,
-          backgroundColor: C.bg,
-          borderBottomWidth: 1,
-          borderBottomColor: C.border,
-        }}
-      >
-        <Text
+      <View style={{ flex: 1 }}>
+        {/* Top Bar */}
+        <View
           style={{
-            fontSize: 24,
-            fontWeight: "800",
-            color: C.dark,
-            letterSpacing: -0.5,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 20,
+            paddingTop: Platform.OS === "android" ? 16 : 4,
+            paddingBottom: 12,
+            backgroundColor: C.bg,
+            borderBottomWidth: 1,
+            borderBottomColor: C.border,
           }}
         >
-          Insights
-        </Text>
-        <PeriodTabs active={period} onChange={setPeriod} />
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "800",
+              color: C.dark,
+              letterSpacing: -0.5,
+            }}
+          >
+            Insights
+          </Text>
+          <PeriodTabs active={period} onChange={setPeriod} />
+        </View>
+
+        {!loading && error && <ErrorState message={error} onRetry={refetch} />}
+
+        {!loading && !error && data && (
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingTop: 12,
+              paddingBottom: 32, // enough room above bottom nav bar
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <TypeSelector active={txType} onChange={setTxType} />
+
+            <SectionLabel text="SUMMARY" />
+            <SummaryRow data={data.summary} type={txType} />
+
+            <SectionLabel text="TREND" />
+            {/* TrendChart handles its own height — no extra wrapper needed */}
+            <TrendChart data={data.chart} type={txType} period={period} />
+
+            {/* Breakdown — colour fix handled inside SpendingBreakdown */}
+            <SpendingBreakdown
+              data={data.breakdown}
+              total={data.summary.total}
+              type={txType}
+            />
+
+            <SectionLabel text="COMPARISON" />
+            <PeriodComparison data={data.comparison} type={txType} />
+
+            {/* GOAL section removed ✅ */}
+
+            <SectionLabel text="DAILY ACTIVITY" />
+            {/* Pass real data — DailyTracking renders from startDate → today */}
+            <DailyTracking
+              activityMap={dailyActivity.activityMap}
+              startDate={dailyActivity.startDate}
+              endDate={dailyActivity.endDate}
+              loading={dailyActivity.loading}
+            />
+
+            <View style={{ height: 24 }} />
+          </ScrollView>
+        )}
+        <Loader visible={loading} message="Loading data…" />
       </View>
-
-      {!loading && error && <ErrorState message={error} onRetry={refetch} />}
-
-      {!loading && !error && data && (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 12,
-            paddingBottom: 32, // enough room above bottom nav bar
-          }}
-          showsVerticalScrollIndicator={false}
-        >
-          <TypeSelector active={txType} onChange={setTxType} />
-
-          <SectionLabel text="SUMMARY" />
-          <SummaryRow data={data.summary} type={txType} />
-
-          <SectionLabel text="TREND" />
-          {/* TrendChart handles its own height — no extra wrapper needed */}
-          <TrendChart data={data.chart} type={txType} period={period} />
-
-          {/* Breakdown — colour fix handled inside SpendingBreakdown */}
-          <SpendingBreakdown
-            data={data.breakdown}
-            total={data.summary.total}
-            type={txType}
-          />
-
-          <SectionLabel text="COMPARISON" />
-          <PeriodComparison data={data.comparison} type={txType} />
-
-          {/* GOAL section removed ✅ */}
-
-          <SectionLabel text="DAILY ACTIVITY" />
-          {/* Pass real data — DailyTracking renders from startDate → today */}
-          <DailyTracking
-            activityMap={dailyActivity.activityMap}
-            startDate={dailyActivity.startDate}
-            endDate={dailyActivity.endDate}
-            loading={dailyActivity.loading}
-          />
-
-          <View style={{ height: 24 }} />
-        </ScrollView>
-      )}
     </SafeAreaView>
   );
 }

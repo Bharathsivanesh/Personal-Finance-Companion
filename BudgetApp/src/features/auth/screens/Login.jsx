@@ -16,7 +16,6 @@ import InputField from "@/src/components/common/Inputfield";
 import { router } from "expo-router";
 import { loginservice } from "@/src/services/firebase/authService";
 import Loader from "@/src/components/ui/Loader";
-import { useToast } from "@/src/components/ui/Toast";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
@@ -25,31 +24,31 @@ import { auth, db } from "@/src/services/firebase/Config";
 import { createUserModel } from "@/src/models/userModel";
 import Toast from "react-native-toast-message";
 
+// ✅ Centralized validators
+import { validateLoginForm, hasErrors } from "@/src/utils/validators";
+
 WebBrowser.maybeCompleteAuthSession();
 
-// ✅ Faster staggered entrance — shorter delays, snappier spring
 function useEntranceAnim(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(16)).current; // reduced from 24
-
+  const translateY = useRef(new Animated.Value(16)).current;
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 300, // reduced from 520
+        duration: 300,
         delay,
         useNativeDriver: true,
       }),
       Animated.spring(translateY, {
         toValue: 0,
-        speed: 20, // faster spring
-        bounciness: 3, // less bounce = snappier
+        speed: 20,
+        bounciness: 3,
         delay,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
-
   return { opacity, transform: [{ translateY }] };
 }
 
@@ -67,7 +66,6 @@ function AnimatedButton({ onPress, children, disabled }) {
       useNativeDriver: true,
       speed: 30,
     }).start();
-
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
@@ -103,27 +101,23 @@ function AnimatedButton({ onPress, children, disabled }) {
   );
 }
 
-export default function LoginScreen({ navigation }) {
-  const { showToast } = useToast();
+export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // ✅ Much tighter delays — content visible almost instantly
-  const heading = useEntranceAnim(0); // immediate
-  const form = useEntranceAnim(60); // 60ms
-  const footer = useEntranceAnim(120); // 120ms
+  const heading = useEntranceAnim(0);
+  const form = useEntranceAnim(60);
+  const footer = useEntranceAnim(120);
 
   // ── Google auth ─────────────────────────────────────────────────────────────
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: "", // 🔑 your web client ID
+    clientId: "",
   });
 
   useEffect(() => {
-    if (response?.type === "success") {
-      handleGoogleResponse(response);
-    }
+    if (response?.type === "success") handleGoogleResponse(response);
   }, [response]);
 
   const handleGoogleResponse = async (response) => {
@@ -136,18 +130,18 @@ export default function LoginScreen({ navigation }) {
 
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
-
       if (!userSnap.exists()) {
-        const userData = createUserModel({
-          fullName: user.displayName || "User",
-          email: user.email,
-          phone: user.phoneNumber || "",
-          provider: "google",
-        });
-        await setDoc(userRef, userData);
+        await setDoc(
+          userRef,
+          createUserModel({
+            fullName: user.displayName || "User",
+            email: user.email,
+            phone: user.phoneNumber || "",
+            provider: "google",
+          }),
+        );
       }
-
-      Toast.show({ type: "success", text1: "Signed in with Google " });
+      Toast.show({ type: "success", text1: "Signed in with Google" });
       router.replace("/(tabs)");
     } catch (error) {
       console.log(error);
@@ -158,38 +152,39 @@ export default function LoginScreen({ navigation }) {
   };
 
   // ── Email login ─────────────────────────────────────────────────────────────
-  const validate = () => {
-    const e = {};
-    if (!email.trim()) e.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = "Enter a valid email";
-    if (!password) e.password = "Password is required";
-    else if (password.length < 6) e.password = "At least 6 characters";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
   const handleLogin = async () => {
-    if (!validate()) return;
+    // ✅ Use centralized validator
+    const validationErrors = validateLoginForm({ email, password });
+    if (hasErrors(validationErrors)) {
+      setErrors(validationErrors);
+      return;
+    }
+
     try {
       setLoading(true);
       await loginservice(email, password);
-      // showToast({
-      //   type: "success",
-      //   message: "Signed in successfully",
-      //   duration: 3000,
-      // });
       Toast.show({ type: "success", text1: "Logged in successfully" });
       setTimeout(() => router.replace("/(tabs)"), 400);
     } catch (error) {
       console.log(error);
-
-      Toast.show({ type: "error", text1: error.message || "Failed to log in" });
+      // Map Firebase error codes to friendly messages
+      const firebaseErrors = {
+        "auth/user-not-found": "No account found with this email",
+        "auth/wrong-password": "Incorrect password",
+        "auth/invalid-email": "Invalid email address",
+        "auth/too-many-requests": "Too many attempts. Try again later",
+        "auth/invalid-credential": "Invalid email or password",
+      };
+      Toast.show({
+        type: "error",
+        text1:
+          firebaseErrors[error.code] ?? error.message ?? "Failed to log in",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // ── UI ──────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView
       edges={["bottom", "left", "right"]}
@@ -279,7 +274,6 @@ export default function LoginScreen({ navigation }) {
                 error={errors.email}
                 returnKeyType="next"
               />
-
               <InputField
                 type="password"
                 label="Password"
@@ -294,9 +288,6 @@ export default function LoginScreen({ navigation }) {
                 onSubmitEditing={handleLogin}
               />
 
-              {/* Forgot password */}
-
-              {/* Login button */}
               <AnimatedButton onPress={handleLogin} disabled={loading}>
                 {loading ? "Signing in…" : "Login  →"}
               </AnimatedButton>
@@ -327,7 +318,7 @@ export default function LoginScreen({ navigation }) {
                 />
               </View>
 
-              {/* Google button */}
+              {/* Google */}
               <TouchableOpacity
                 onPress={() => promptAsync({ useProxy: true })}
                 disabled={!request || loading}

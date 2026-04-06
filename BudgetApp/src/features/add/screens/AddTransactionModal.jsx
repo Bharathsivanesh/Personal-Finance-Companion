@@ -10,6 +10,7 @@ import {
   Pressable,
   Alert,
   Dimensions,
+  Animated,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,9 +32,15 @@ import {
   addTransactionservice,
   updateTransactionservice,
 } from "../../transaction/services/transactionService";
-import { useToast } from "@/src/components/ui/Toast";
 import Loader from "@/src/components/ui/Loader";
 import { uploadFile } from "../components/uploadFile";
+
+// ✅ centralized validators
+import {
+  validateAmount,
+  validateCategory,
+  hasErrors,
+} from "@/src/utils/validators";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -44,6 +51,25 @@ const EMPTY_FORM = {
   notes: "",
   attachment: null,
 };
+
+// ── Inline error label — same style as InputField ─────────────────────────────
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <Text
+      style={{
+        marginTop: 4,
+        marginBottom: 8,
+        marginLeft: 4,
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#ef4444",
+      }}
+    >
+      ⚠ {message}
+    </Text>
+  );
+}
 
 const TypeTab = React.memo(function TypeTab({ tab, active, onPress }) {
   return (
@@ -90,23 +116,23 @@ export default function AddTransactionModal({
   onSuccess,
   editItem,
 }) {
-  // ─── mode ─────────────────────────────────────────────────────────────────
   const isEditMode = !!editItem;
 
-  // ─── form state ───────────────────────────────────────────────────────────
   const [type, setType] = useState("expense");
   const [expenseForm, setExpenseForm] = useState({ ...EMPTY_FORM });
   const [incomeForm, setIncomeForm] = useState({ ...EMPTY_FORM });
   const [transferForm, setTransferForm] = useState({ ...EMPTY_FORM });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const scrollRef = useRef(null);
+  const shakeAnim = useRef(new Animated.Value(0)).current;
 
-  // ─── seed form when switching to edit mode ────────────────────────────────
+  // ── seed form in edit mode ────────────────────────────────────────────────
   useEffect(() => {
     if (isEditMode && visible) {
       const t = editItem.type ?? "expense";
       setType(t);
-
       const seeded = {
         amount: editItem.amount ? String(editItem.amount) : "",
         category: editItem.category ?? "",
@@ -116,14 +142,12 @@ export default function AddTransactionModal({
           ? { type: "image", uri: editItem.attachmentUrl, name: "attachment" }
           : null,
       };
-
       if (t === "expense") setExpenseForm(seeded);
       else if (t === "income") setIncomeForm(seeded);
       else setTransferForm(seeded);
     }
   }, [isEditMode, visible, editItem]);
 
-  // ─── active form for current type ─────────────────────────────────────────
   const { form, setForm } = {
     expense: { form: expenseForm, setForm: setExpenseForm },
     income: { form: incomeForm, setForm: setIncomeForm },
@@ -131,7 +155,6 @@ export default function AddTransactionModal({
   }[type];
 
   const activeColor = TABS.find((t) => t.key === type)?.color ?? "#ef4444";
-
   const categories =
     type === "expense"
       ? EXPENSE_CATEGORIES
@@ -140,16 +163,52 @@ export default function AddTransactionModal({
         : TRANSFER_CATEGORIES;
 
   const setField = useCallback(
-    (field, value) => setForm((prev) => ({ ...prev, [field]: value })),
-    [setForm],
+    (field, value) => {
+      setForm((prev) => ({ ...prev, [field]: value }));
+      // clear error for that field as user types
+      if (errors[field]) setErrors((e) => ({ ...e, [field]: null }));
+    },
+    [setForm, errors],
   );
 
   const handleTypeChange = useCallback((key) => {
     setType(key);
+    setErrors({});
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, []);
 
-  // ─── attachment pickers ───────────────────────────────────────────────────
+  // ── shake amount + category on error ─────────────────────────────────────
+  const shake = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, {
+        toValue: 7,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: -7,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 5,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: -5,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  // ── attachment pickers ────────────────────────────────────────────────────
   async function handlePickImage() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -193,30 +252,29 @@ export default function AddTransactionModal({
     }
   }
 
-  // ─── save / update ────────────────────────────────────────────────────────
-  const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
-
+  // ── save / update ─────────────────────────────────────────────────────────
   async function handleSave() {
-    // Validation
-    if (!form.amount || parseFloat(form.amount) <= 0) {
-      Toast.show({ type: "info", text1: "Invalid amount" });
-      return;
-    }
-    if (type !== "transfer" && !form.category) {
-      Toast.show({ type: "info", text1: "Category required" });
+    // ✅ validate using centralized helpers — show inline, not toast/alert
+    const validationErrors = {};
+    const amountErr = validateAmount(form.amount);
+    const categoryErr =
+      type !== "transfer" ? validateCategory(form.category) : null;
+    if (amountErr) validationErrors.amount = amountErr;
+    if (categoryErr) validationErrors.category = categoryErr;
+
+    if (hasErrors(validationErrors)) {
+      setErrors(validationErrors);
+      shake();
       return;
     }
 
     try {
       setLoading(true);
-
-      // Attachment upload — skip if it's the existing remote URL unchanged
       let attachmentUrl = editItem?.attachmentUrl ?? "";
       if (form.attachment && form.attachment.uri !== editItem?.attachmentUrl) {
         attachmentUrl = await uploadFile(form.attachment);
       } else if (!form.attachment) {
-        attachmentUrl = ""; // user removed it
+        attachmentUrl = "";
       }
 
       const payload = {
@@ -260,15 +318,14 @@ export default function AddTransactionModal({
   }
 
   function handleClose() {
-    // Reset all forms on close
     setExpenseForm({ ...EMPTY_FORM });
     setIncomeForm({ ...EMPTY_FORM });
     setTransferForm({ ...EMPTY_FORM });
+    setErrors({});
     setType("expense");
     onClose();
   }
 
-  // ─── render ───────────────────────────────────────────────────────────────
   return (
     <>
       <Loader
@@ -328,7 +385,6 @@ export default function AddTransactionModal({
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
               >
-                {/* Edit mode shows a purple accent bar */}
                 {isEditMode && (
                   <View
                     style={{
@@ -345,7 +401,6 @@ export default function AddTransactionModal({
                   {isEditMode ? "Edit Transaction" : "Add Transaction"}
                 </Text>
               </View>
-
               <TouchableOpacity
                 onPress={handleClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -396,57 +451,73 @@ export default function AddTransactionModal({
                 paddingBottom: 24,
               }}
             >
-              {/* Amount */}
+              {/* ── Amount ── */}
               <SectionLabel text="Amount" />
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: "#f9fafb",
-                  borderWidth: 1.5,
-                  borderColor: form.amount ? activeColor : "#e5e7eb",
-                  borderRadius: 14,
-                  paddingHorizontal: 14,
-                  marginBottom: 16,
-                }}
-              >
-                <Text
+              <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
+                <View
                   style={{
-                    fontSize: 24,
-                    fontWeight: "700",
-                    color: activeColor,
-                    marginRight: 4,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "#f9fafb",
+                    borderWidth: 1.5,
+                    // ✅ red border on error, accent when filled, grey default
+                    borderColor: errors.amount
+                      ? "#ef4444"
+                      : form.amount
+                        ? activeColor
+                        : "#e5e7eb",
+                    borderRadius: 14,
+                    paddingHorizontal: 14,
+                    marginBottom: 4,
                   }}
                 >
-                  ₹
-                </Text>
-                <TextInput
-                  style={{
-                    flex: 1,
-                    fontSize: 32,
-                    fontWeight: "700",
-                    color: "#111827",
-                    paddingVertical: 12,
-                  }}
-                  placeholder="0.00"
-                  placeholderTextColor="#d1d5db"
-                  keyboardType="decimal-pad"
-                  returnKeyType="done"
-                  value={form.amount}
-                  onChangeText={(v) => setField("amount", v)}
-                />
-              </View>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "700",
+                      marginRight: 4,
+                      color: errors.amount ? "#ef4444" : activeColor,
+                    }}
+                  >
+                    ₹
+                  </Text>
+                  <TextInput
+                    style={{
+                      flex: 1,
+                      fontSize: 32,
+                      fontWeight: "700",
+                      color: "#111827",
+                      paddingVertical: 12,
+                    }}
+                    placeholder="0.00"
+                    placeholderTextColor="#d1d5db"
+                    keyboardType="decimal-pad"
+                    returnKeyType="done"
+                    value={form.amount}
+                    onChangeText={(v) => setField("amount", v)}
+                  />
+                </View>
+                {/* ✅ inline error message */}
+                <FieldError message={errors.amount} />
+              </Animated.View>
 
-              {/* Category */}
+              {/* ── Category ── */}
               {type !== "transfer" && (
-                <SelectPicker
-                  label="Category"
-                  value={form.category}
-                  options={categories}
-                  onChange={(v) => setField("category", v)}
-                  placeholder="Select category"
-                  accentColor={activeColor}
-                />
+                <Animated.View
+                  style={{ transform: [{ translateX: shakeAnim }] }}
+                >
+                  <SelectPicker
+                    label="Category"
+                    value={form.category}
+                    options={categories}
+                    onChange={(v) => setField("category", v)}
+                    placeholder="Select category"
+                    // ✅ red accent when error
+                    accentColor={errors.category ? "#ef4444" : activeColor}
+                    error={errors.category}
+                  />
+                  <FieldError message={errors.category} />
+                </Animated.View>
               )}
 
               {/* Payment Mode */}
