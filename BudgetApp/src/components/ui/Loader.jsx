@@ -1,26 +1,36 @@
 // src/components/ui/Loader.jsx
 import React, { useEffect, useRef } from "react";
-import { View, Modal, Animated, Easing, Text } from "react-native";
+import { View, Animated, Easing, Text } from "react-native";
 
+/**
+ * Loader — position:absolute overlay, never unmounts.
+ * Animations run continuously so they're always mid-cycle when shown.
+ *
+ * Props (same as before):
+ *   visible  – boolean
+ *   message  – string | undefined
+ *   overlay  – boolean (default true)
+ */
 const Loader = ({ visible, message, overlay = true }) => {
-  const fadeIn = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
   const spin = useRef(new Animated.Value(0)).current;
   const bar1 = useRef(new Animated.Value(0.4)).current;
   const bar2 = useRef(new Animated.Value(0.7)).current;
   const bar3 = useRef(new Animated.Value(0.5)).current;
 
+  // ── animations start ONCE on mount, loop forever ─────────────────────────
   useEffect(() => {
-    // ✅ coin flip — native driver
+    // Coin flip
     Animated.loop(
       Animated.timing(spin, {
         toValue: 1,
         duration: 1000,
         easing: Easing.linear,
-        useNativeDriver: true, // ✅
+        useNativeDriver: true,
       }),
     ).start();
 
-    // ✅ bars use scaleY (transform) → native driver works
+    // Bars
     const makeBar = (anim, delay) =>
       Animated.loop(
         Animated.sequence([
@@ -29,13 +39,13 @@ const Loader = ({ visible, message, overlay = true }) => {
             toValue: 1,
             duration: 420,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true, // ✅ native now
+            useNativeDriver: true,
           }),
           Animated.timing(anim, {
             toValue: 0.3,
             duration: 420,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true, // ✅
+            useNativeDriver: true,
           }),
         ]),
       );
@@ -43,45 +53,70 @@ const Loader = ({ visible, message, overlay = true }) => {
     makeBar(bar1, 0).start();
     makeBar(bar2, 140).start();
     makeBar(bar3, 280).start();
-  }, []);
+  }, []); // ← empty deps: starts once, never resets
 
+  // ── fade overlay in/out on visible change ─────────────────────────────────
   useEffect(() => {
-    Animated.timing(fadeIn, {
+    Animated.timing(fadeAnim, {
       toValue: visible ? 1 : 0,
-      duration: 200,
+      duration: 180,
       useNativeDriver: true,
     }).start();
   }, [visible]);
 
+  // ── derived styles ─────────────────────────────────────────────────────────
   const coinScaleX = spin.interpolate({
     inputRange: [0, 0.25, 0.5, 0.75, 1],
     outputRange: [1, 0.1, 1, 0.1, 1],
   });
 
-  // ✅ bars: fixed height container, animate scaleY + translateY to anchor bottom
   const BAR_MAX = 22;
+  const makeBarStyle = (anim, color) => ({
+    width: 7,
+    height: BAR_MAX,
+    borderRadius: 4,
+    backgroundColor: color,
+    transform: [
+      {
+        scaleY: anim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }),
+      },
+      {
+        translateY: anim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [BAR_MAX * 0.35, 0],
+        }),
+      },
+    ],
+  });
 
-  const makeBarStyle = (anim, color) => {
-    const scaleY = anim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.3, 1], // scaleY 0.3 → 1
-    });
-    // translateY to keep bar anchored at bottom
-    const translateY = anim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [BAR_MAX * 0.35, 0],
-    });
-    return {
-      width: 7,
-      height: BAR_MAX,
-      borderRadius: 4,
-      backgroundColor: color,
-      transform: [{ scaleY }, { translateY }],
-    };
-  };
+  const card = (
+    <View
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: 20,
+        paddingVertical: 28,
+        paddingHorizontal: 36,
+        alignItems: "center",
+        shadowColor: "#7c3aed",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 12,
+      }}
+    >
+      {/* Purple top accent */}
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 28,
+          right: 28,
+          height: 3,
+          borderRadius: 2,
+          backgroundColor: "#8b5cf6",
+        }}
+      />
 
-  const Content = (
-    <View style={{ alignItems: "center", gap: 14 }}>
       {/* Flipping ₹ coin */}
       <Animated.View
         style={{
@@ -104,13 +139,14 @@ const Loader = ({ visible, message, overlay = true }) => {
         </Text>
       </Animated.View>
 
-      {/* Bar chart — fixed height container */}
+      {/* Animated bars */}
       <View
         style={{
           flexDirection: "row",
           alignItems: "flex-end",
           gap: 5,
           height: BAR_MAX,
+          marginTop: 14,
         }}
       >
         <Animated.View style={makeBarStyle(bar1, "#c4b5fd")} />
@@ -125,6 +161,7 @@ const Loader = ({ visible, message, overlay = true }) => {
             fontWeight: "600",
             color: "#6b7280",
             letterSpacing: 0.3,
+            marginTop: 14,
           }}
         >
           {message}
@@ -133,53 +170,28 @@ const Loader = ({ visible, message, overlay = true }) => {
     </View>
   );
 
-  if (!overlay) return visible ? Content : null;
+  // ── non-overlay mode ──────────────────────────────────────────────────────
+  if (!overlay) return visible ? card : null;
 
+  // ── overlay mode — always in the tree, shown/hidden via opacity + pointerEvents
   return (
-    <Modal
-      transparent
-      animationType="none"
-      visible={visible}
-      statusBarTranslucent
+    <Animated.View
+      pointerEvents={visible ? "box-only" : "none"} // blocks taps only when visible
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.38)",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 999,
+        opacity: fadeAnim, // fade in/out — never unmounts
+      }}
     >
-      <Animated.View
-        style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.38)",
-          justifyContent: "center",
-          alignItems: "center",
-          opacity: fadeIn,
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: 20,
-            paddingVertical: 28,
-            paddingHorizontal: 36,
-            alignItems: "center",
-            shadowColor: "#7c3aed",
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.15,
-            shadowRadius: 20,
-            elevation: 12,
-          }}
-        >
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 28,
-              right: 28,
-              height: 3,
-              borderRadius: 2,
-              backgroundColor: "#8b5cf6",
-            }}
-          />
-          {Content}
-        </View>
-      </Animated.View>
-    </Modal>
+      {card}
+    </Animated.View>
   );
 };
 

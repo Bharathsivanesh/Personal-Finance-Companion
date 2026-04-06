@@ -15,33 +15,32 @@ import InputField from "@/src/components/common/Inputfield";
 import { router } from "expo-router";
 import PasswordStrength from "../components/PasswordStrength";
 import { signupservice } from "@/src/services/firebase/authService";
-import { useToast } from "@/src/components/ui/Toast";
 import Loader from "@/src/components/ui/Loader";
 import Toast from "react-native-toast-message";
 
-// ✅ Fast entrance — content visible almost immediately
+// ✅ Centralized validators
+import { validateSignUpForm, hasErrors } from "@/src/utils/validators";
+
 function useEntranceAnim(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(14)).current; // reduced from 28
-
+  const translateY = useRef(new Animated.Value(14)).current;
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 280, // reduced from 520
+        duration: 280,
         delay,
         useNativeDriver: true,
       }),
       Animated.spring(translateY, {
         toValue: 0,
-        speed: 22, // faster
-        bounciness: 2, // less bounce
+        speed: 22,
+        bounciness: 2,
         delay,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
-
   return { opacity, transform: [{ translateY }] };
 }
 
@@ -59,7 +58,6 @@ function AnimatedButton({ onPress, loading }) {
       useNativeDriver: true,
       speed: 30,
     }).start();
-
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
@@ -95,9 +93,7 @@ function AnimatedButton({ onPress, loading }) {
   );
 }
 
-export default function SignUpScreen({ navigation }) {
-  const { showToast } = useToast();
-
+export default function SignUpScreen() {
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
@@ -107,7 +103,6 @@ export default function SignUpScreen({ navigation }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // ✅ Tighter delays — all content visible within 150ms
   const heading = useEntranceAnim(0);
   const fields1 = useEntranceAnim(50);
   const fields2 = useEntranceAnim(100);
@@ -115,55 +110,34 @@ export default function SignUpScreen({ navigation }) {
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
+    // Clear that field's error as user types
     if (errors[key]) setErrors((e) => ({ ...e, [key]: null }));
   };
 
-  const validate = () => {
-    const e = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required";
-    if (!form.phone.trim()) e.phone = "Mobile number is required";
-    else if (!/^\+?[\d\s-]{8,}$/.test(form.phone))
-      e.phone = "Enter a valid phone number";
-    if (!form.email.trim()) e.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email))
-      e.email = "Enter a valid email address";
-    if (!form.password) e.password = "Password is required";
-    else if (form.password.length < 6) e.password = "At least 6 characters";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
   const handleSignUp = async () => {
-    if (!validate()) return;
+    // ✅ Use centralized validator
+    const validationErrors = validateSignUpForm(form);
+    if (hasErrors(validationErrors)) {
+      setErrors(validationErrors);
+      return;
+    }
+
     try {
       setLoading(true);
       await signupservice(form);
-
       Toast.show({ type: "success", text1: "Account created successfully!" });
       setTimeout(() => router.replace("/(tabs)"), 400);
     } catch (error) {
       console.log(error);
-      const errorMessages = {
-        "auth/email-already-in-use": {
-          message: "Email already in use",
-          description: "Try logging in instead",
-        },
-        "auth/invalid-email": {
-          message: "Invalid email",
-          description: "Please enter a valid email",
-        },
-        "auth/weak-password": {
-          message: "Weak password",
-          description: "Use at least 6 characters",
-        },
-      };
-      const mapped = errorMessages[error.code] ?? {
-        message: "Something went wrong",
-        description: "",
+      const firebaseErrors = {
+        "auth/email-already-in-use": "Email already in use — try logging in",
+        "auth/invalid-email": "Invalid email address",
+        "auth/weak-password": "Password too weak — use at least 6 characters",
       };
       Toast.show({
         type: "error",
-        text1: mapped.message || "Failed to sign up",
+        text1:
+          firebaseErrors[error.code] ?? error.message ?? "Failed to sign up",
       });
     } finally {
       setLoading(false);
@@ -290,7 +264,6 @@ export default function SignUpScreen({ navigation }) {
               />
               <PasswordStrength password={form.password} />
 
-              {/* CTA */}
               <View style={{ marginTop: 8 }}>
                 <AnimatedButton onPress={handleSignUp} loading={loading} />
               </View>
