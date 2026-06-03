@@ -235,7 +235,7 @@ npx expo start
 
 ## 📁 APK / Build
 
-`https://expo.dev/accounts/sivaneshs/projects/BudgetApp/builds/92404e8a-d4f9-4244-b784-6ffd905b4606`
+```https://expo.dev/accounts/sivaneshs/projects/BudgetApp/builds/92404e8a-d4f9-4244-b784-6ffd905b4606```
 
 ---
 
@@ -246,6 +246,77 @@ npx expo start
 - Lightweight data storage
 
 ---
+# 📘 Detailed Documentation
+
+## 🧭 Development Journey
+
+### Step 1: Planning
+
+* Understood requirements
+* Defined features
+* Researched similar apps
+
+### Step 2: UI Design
+
+* Created UI sketches
+* Referenced modern finance apps
+* Focused on clarity & simplicity
+
+### Step 3: Architecture Setup
+
+* Feature-based folder structure
+* Context + hooks setup
+
+### Step 4: UI Development
+
+* Built screens first
+* Ensured responsiveness
+
+### Step 5: Backend Integration
+
+* Firebase setup
+* Firestore schema design
+* Supabase storage setup
+
+### Step 6: Optimization
+
+* Indexed queries
+* Reduced re-renders
+
+### Step 7: Testing
+
+* Functional testing
+* UX improvements
+
+---
+
+## 🧱 Database Design (Firestore)
+
+Collections:
+
+* users
+* transactions
+
+Transaction Fields:
+
+* amount
+* type
+* category
+* date
+* note
+* receiptUrl
+
+---
+
+## 🔁 State Flow
+
+* Global state via Context
+* Custom hooks for:
+
+  * fetching data
+  * updating data
+  * syncing UI
+
 
 ## 📈 Future Improvements
 
@@ -256,7 +327,6 @@ npx expo start
 - Multi-currency support
 - Biometric authentication
 
----
 
 ## 🙌 Conclusion
 
