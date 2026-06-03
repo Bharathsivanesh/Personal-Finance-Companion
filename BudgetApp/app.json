@@ -40,7 +40,8 @@
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -51,6 +52,7 @@
       "eas": {
         "projectId": "2976da71-296c-46ca-b4d7-e78b3ef9eef1"
       }
-    }
+    },
+    "owner": "sivaneshs"
   }
 }

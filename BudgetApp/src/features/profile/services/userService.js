@@ -2,6 +2,7 @@ import { auth, db } from "@/src/services/firebase/Config";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 // ✅ GET PROFILE
 export const getUserProfile = async () => {
@@ -44,8 +45,9 @@ export const updateUserProfile = async (data) => {
 export const logoutService = async () => {
   try {
     // 1. Firebase logout
+    
+    await GoogleSignin.signOut(); // Google logout
     await signOut(auth);
-
     // 2. Clear local storage
     await AsyncStorage.clear();
     // OR better (if you store specific keys)
