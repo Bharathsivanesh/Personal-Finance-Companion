@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   StyleSheet,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -35,6 +36,7 @@ import {
   isSuccessResponse,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import Loader from "@/src/components/ui/Loader";
 
 // Configure Google Sign-In — call once at module level
 // webClientId = Web OAuth client ID from GCD (not Android client ID);
@@ -291,104 +293,108 @@ export default function LoginScreen() {
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView edges={["bottom", "left", "right"]} style={styles.safe}>
-      {/* Background blobs */}
-      <View pointerEvents="none" style={styles.blobTop} />
-      <View pointerEvents="none" style={styles.blobBottom} />
+    <>
+      <Loader
+        visible={googleLoading}
+        message={"Authenticating with Google..."}
+      />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      <SafeAreaView edges={["bottom", "left", "right"]} style={styles.safe}>
+        {/* Background blobs */}
+        <View pointerEvents="none" style={styles.blobTop} />
+        <View pointerEvents="none" style={styles.blobBottom} />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
         >
-          <View style={styles.inner}>
-            {/* Heading */}
-            <Animated.View style={[styles.headingBlock, heading]}>
-              <Text style={styles.title}>Welcome Back 👋</Text>
-              <Text style={styles.subtitle}>
-                Sign in to manage your financial assets
-              </Text>
-            </Animated.View>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.inner}>
+              {/* Heading */}
+              <Animated.View style={[styles.headingBlock, heading]}>
+                <Text style={styles.title}>Welcome Back 👋</Text>
+                <Text style={styles.subtitle}>
+                  Sign in to manage your financial assets
+                </Text>
+              </Animated.View>
 
-            {/* Form */}
-            <Animated.View style={form}>
-              <InputField
-                label="Email"
-                value={email}
-                keyboardType="email-address"
-                returnKeyType="next"
-                onChangeText={(v) => {
-                  setEmail(v);
-                  if (errors.email) setErrors((e) => ({ ...e, email: null }));
-                }}
-                error={errors.email}
-              />
+              {/* Form */}
+              <Animated.View style={form}>
+                <InputField
+                  label="Email"
+                  value={email}
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                  onChangeText={(v) => {
+                    setEmail(v);
+                    if (errors.email) setErrors((e) => ({ ...e, email: null }));
+                  }}
+                  error={errors.email}
+                />
 
-              <InputField
-                label="Password"
-                value={password}
-                secureTextEntry
-                returnKeyType="done"
-                onSubmitEditing={handleEmailLogin}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  if (errors.password)
-                    setErrors((e) => ({ ...e, password: null }));
-                }}
-                error={errors.password}
-              />
+                <InputField
+                  label="Password"
+                  value={password}
+                  secureTextEntry
+                  returnKeyType="done"
+                  onSubmitEditing={handleEmailLogin}
+                  onChangeText={(v) => {
+                    setPassword(v);
+                    if (errors.password)
+                      setErrors((e) => ({ ...e, password: null }));
+                  }}
+                  error={errors.password}
+                />
 
-              <PrimaryButton
-                label="Login  →"
-                onPress={handleEmailLogin}
-                disabled={loading || googleLoading}
-                loading={loading}
-              />
+                <PrimaryButton
+                  label="Login  →"
+                  onPress={handleEmailLogin}
+                  disabled={loading || googleLoading}
+                  loading={loading}
+                />
 
-              {/* Divider */}
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.dividerLine} />
-              </View>
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
 
-              {/* Google Button */}
-              <TouchableOpacity
-                onPress={handleGoogleSignIn}
-                disabled={loading || googleLoading}
-                style={[
-                  styles.googleBtn,
-                  (loading || googleLoading) && { opacity: 0.6 },
-                ]}
-              >
-                {googleLoading ? (
-                  <ActivityIndicator color="#555" style={{ marginRight: 10 }} />
-                ) : (
-                  // Replace with your icon once available:
-                  // <Image source={require("@/assets/images/googleicon.png")} style={styles.googleIcon} />
-                  <Text style={styles.googleIconFallback}>G</Text>
-                )}
-                <Text style={styles.googleBtnText}>
+                {/* Google Button */}
+                <TouchableOpacity
+                  onPress={handleGoogleSignIn}
+                  disabled={loading || googleLoading}
+                  style={[
+                    styles.googleBtn,
+                    (loading || googleLoading) && { opacity: 0.6 },
+                  ]}
+                >
+                  <Image
+                    source={require("@/assets/images/googleicon.png")}
+                    style={styles.googleIcon}
+                  />
+                  <Text style={styles.googleBtnText}>
                   {googleLoading ? "Signing in…" : "Continue with Google"}
                 </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                </TouchableOpacity>
+              </Animated.View>
 
-            {/* Footer */}
-            <Animated.View style={[styles.footerRow, footer]}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-                <Text style={styles.footerLink}>Sign Up</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              {/* Footer */}
+              <Animated.View style={[styles.footerRow, footer]}>
+                <Text style={styles.footerText}>Don't have an account? </Text>
+                <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+                  <Text style={styles.footerLink}>Sign Up</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </>
   );
 }
 
